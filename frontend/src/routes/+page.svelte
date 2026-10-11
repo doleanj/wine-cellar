@@ -374,7 +374,7 @@ function handleLibraryView(e) {
         {#if $branding.logoUrl}
           <img src={$branding.logoUrl} alt="Logo" class="logo-img" />
         {:else}
-          <img src="/logo/kellerlog-icon.svg" alt="KellerLog" class="app-icon" />
+          <img src="/logo/wine-cellar-icon.svg" alt="Wine Cellar" class="app-icon" />
         {/if}
         <div>
           <h1>{$branding.title}</h1>
@@ -612,11 +612,11 @@ function handleLibraryView(e) {
   </main>
 
   <footer class="footer">
-    <a href="https://github.com/KrapfalAT/kellerlog" target="_blank" rel="noopener" class="footer-link">KellerLog</a>
+    <a href="https://github.com/doleanj/wine-cellar" target="_blank" rel="noopener" class="footer-link">Wine Cellar</a>
     {#if import.meta.env.VITE_DEV_BUILD === 'true'}
       <span class="footer-version dev-badge">dev</span>
     {:else}
-      <a class="footer-version" href="https://github.com/KrapfalAT/kellerlog/releases" target="_blank" rel="noopener">v{version}</a>
+      <a class="footer-version" href="https://github.com/doleanj/wine-cellar/releases" target="_blank" rel="noopener">v{version}</a>
     {/if}
   </footer>
 

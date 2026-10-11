@@ -38,7 +38,7 @@
   </g>
 
   <!-- App name -->
-  <text x="278" y="148" font-family="ui-monospace, 'Cascadia Code', monospace" font-size="82" font-weight="600" fill="#FFFFFF" letter-spacing="-2">KellerLog</text>
+  <text x="278" y="148" font-family="ui-monospace, 'Cascadia Code', monospace" font-size="82" font-weight="600" fill="#FFFFFF" letter-spacing="-2">Wine Cellar</text>
 
   <!-- Tagline -->
   <text x="282" y="192" font-family="ui-monospace, 'Cascadia Code', monospace" font-size="22" fill="rgba(0,255,136,0.85)" letter-spacing="1">wine management · self-hosted · open source</text>

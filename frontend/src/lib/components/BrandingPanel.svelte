@@ -179,7 +179,7 @@
         </div>
         <div class="field">
           <label for="branding-title">{$t('branding_label_title')}</label>
-          <input id="branding-title" type="text" bind:value={title} on:input={onTitle} placeholder="KellerLog" maxlength="40" />
+          <input id="branding-title" type="text" bind:value={title} on:input={onTitle} placeholder="Wine Cellar" maxlength="40" />
         </div>
         <div class="field">
           <label for="branding-subtitle">{$t('branding_label_subtitle')}</label>

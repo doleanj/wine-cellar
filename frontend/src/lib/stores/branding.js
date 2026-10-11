@@ -6,7 +6,7 @@ const CACHE_KEY = 'kellerlog_branding_cache';
 export const DEFAULTS = {
   primaryColor: '#480f25',
   darkMode: false,
-  title: 'KellerLog',
+  title: 'Wine Cellar',
   subtitle: 'Meine Weinsammlung',
   logoUrl: '',
   showDrinkWindow: true,

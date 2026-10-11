@@ -203,7 +203,7 @@ export async function exportWines(format) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `kellerlog_export.${format}`;
+  a.download = `wine-cellar_export.${format}`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

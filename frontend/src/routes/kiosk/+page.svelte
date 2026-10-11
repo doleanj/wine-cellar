@@ -92,7 +92,7 @@
 
 {#if !loading && !kioskEnabled}
   <div class="unavailable">
-    <img src="/logo/kellerlog-icon.svg" alt="KellerLog" class="unavail-icon" />
+    <img src="/logo/wine-cellar-icon.svg" alt="Wine Cellar" class="unavail-icon" />
     <h2>Weinkarte nicht verfügbar</h2>
     <p>Die Kiosk-Ansicht ist derzeit deaktiviert.</p>
   </div>
@@ -104,7 +104,7 @@
         {#if $branding.logoUrl}
           <img src={$branding.logoUrl} alt="Logo" class="logo-img" />
         {:else}
-          <img src="/logo/kellerlog-icon.svg" alt="KellerLog" class="app-icon" />
+          <img src="/logo/wine-cellar-icon.svg" alt="Wine Cellar" class="app-icon" />
         {/if}
         <div>
           <h1>{kioskTitle}</h1>
@@ -174,7 +174,7 @@
 
   {#if kioskShowFooter}
     <footer class="kiosk-footer">
-      <a href="https://github.com/KrapfalAT/kellerlog" target="_blank" rel="noopener" class="footer-link">{$branding.title}</a>
+      <a href="https://github.com/doleanj/wine-cellar" target="_blank" rel="noopener" class="footer-link">{$branding.title}</a>
     </footer>
   {/if}
 

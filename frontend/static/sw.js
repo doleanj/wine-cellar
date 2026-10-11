@@ -1,4 +1,4 @@
-const CACHE = 'kellerlog-v6';
+const CACHE = 'wine-cellar-v7';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

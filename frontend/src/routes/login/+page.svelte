@@ -32,13 +32,13 @@
   }
 </script>
 
-<svelte:head><title>Anmelden — KellerLog</title></svelte:head>
+<svelte:head><title>Anmelden — Wine Cellar</title></svelte:head>
 
 <div class="page">
   <div class="card">
     <div class="logo-area">
-      <img src="/logo/kellerlog-icon-192.png" alt="KellerLog" class="logo" />
-      <h1>KellerLog</h1>
+      <img src="/logo/wine-cellar-icon-192.png" alt="Wine Cellar" class="logo" />
+      <h1>Wine Cellar</h1>
     </div>
 
     <form on:submit={handleSubmit} class="form">

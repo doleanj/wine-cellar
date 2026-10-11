@@ -1,8 +1,10 @@
-# KellerLog
+# Wine Cellar
+
+> Personal fork of [KellerLog](https://github.com/KrapfalAT/kellerlog) (MIT, by KrapfalAT), rebranded and extended for my own cellar. Environment variables (`KELLERLOG_*`) and the `kellerlog/` data folder keep their upstream names so existing deployments and upstream merges keep working.
 
 A self-hosted wine cellar management app. Track your collection, scan barcodes, manage inventory, and share a read-only kiosk view for guests.
 
-![KellerLog Banner](frontend/static/logo/kellerlog-banner.png)
+![Wine Cellar Banner](frontend/static/logo/wine-cellar-banner.svg)
 
 ## Screenshots
 
@@ -95,8 +97,8 @@ Pre-built images are published to GitHub Container Registry on every release:
 
 | Image | Tags |
 |-------|------|
-| `ghcr.io/krapfalat/kellerlog-frontend` | `latest` (stable release), `edge` (main branch) |
-| `ghcr.io/krapfalat/kellerlog-backend` | `latest` (stable release), `edge` (main branch) |
+| `ghcr.io/doleanj/wine-cellar-frontend` | `latest` (stable release), `edge` (main branch) |
+| `ghcr.io/doleanj/wine-cellar-backend` | `latest` (stable release), `edge` (main branch) |
 
 Both images are built for `linux/amd64` and `linux/arm64`.
 
@@ -115,7 +117,7 @@ Both images are built for `linux/amd64` and `linux/arm64`.
 ```yaml
 services:
   backend:
-    image: ghcr.io/krapfalat/kellerlog-backend:latest
+    image: ghcr.io/doleanj/wine-cellar-backend:latest
     volumes:
       - ./kellerlog:/app/data
     environment:
@@ -125,7 +127,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/krapfalat/kellerlog-frontend:latest
+    image: ghcr.io/doleanj/wine-cellar-frontend:latest
     ports:
       - "8080:80"
     depends_on:

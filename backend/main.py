@@ -206,7 +206,7 @@ class AppSettings(Base):
     kiosk_show_map = Column(Boolean, default=True)
     primary_color = Column(String, default="#480f25")
     dark_mode = Column(Boolean, default=False)
-    app_title = Column(String, default="KellerLog")
+    app_title = Column(String, default="Wine Cellar")
     app_subtitle = Column(String, default="Meine Weinsammlung")
     logo_url = Column(String, default="")
     show_drink_window = Column(Boolean, default=True)
@@ -277,7 +277,7 @@ def _migrate_settings():
         ("kiosk_show_map",                   "INTEGER DEFAULT 1"),
         ("primary_color",                    "TEXT DEFAULT '#480f25'"),
         ("dark_mode",                        "INTEGER DEFAULT 0"),
-        ("app_title",                        "TEXT DEFAULT 'KellerLog'"),
+        ("app_title",                        "TEXT DEFAULT 'Wine Cellar'"),
         ("app_subtitle",                     "TEXT DEFAULT 'Meine Weinsammlung'"),
         ("logo_url",                         "TEXT DEFAULT ''"),
         ("show_drink_window",                "INTEGER DEFAULT 1"),
@@ -521,7 +521,7 @@ def _client_ip(request: Request) -> str:
 
 
 limiter = Limiter(key_func=_client_ip)
-app = FastAPI(title="KellerLog API", docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(title="Wine Cellar API", docs_url=None, redoc_url=None, openapi_url=None)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -1283,7 +1283,7 @@ async def upload_from_url(body: dict, _=Depends(require_auth)):
         # follow_redirects disabled and re-validated manually — an internal
         # redirect target must not bypass the public-host check above (SSRF).
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=False,
-                                     headers={"User-Agent": "KellerLog/1.5"}) as client:
+                                     headers={"User-Agent": "WineCellar/1.5"}) as client:
             resp = await client.get(url)
             for _hop in range(5):
                 if not resp.has_redirect_location:
@@ -1342,7 +1342,7 @@ def export_json(db: Session = Depends(get_db), _=Depends(require_login)):
     return Response(
         content=json.dumps(data, indent=2, ensure_ascii=False),
         media_type="application/json",
-        headers={"Content-Disposition": "attachment; filename=kellerlog_export.json"},
+        headers={"Content-Disposition": "attachment; filename=wine-cellar_export.json"},
     )
 
 
@@ -1357,7 +1357,7 @@ def export_csv(db: Session = Depends(get_db), _=Depends(require_login)):
     return Response(
         content=buf.getvalue(),
         media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": "attachment; filename=kellerlog_export.csv"},
+        headers={"Content-Disposition": "attachment; filename=wine-cellar_export.csv"},
     )
 
 

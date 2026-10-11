@@ -692,11 +692,6 @@ function handleLibraryView(e) {
   </button>
   {/if}
 
-  <!-- Modal -->
-  {#if showModal}
-    <AddWineModal wine={editingWine} prefill={libraryPrefill} hideStock={modalHideStock || inventoryMode} {customFields} on:save={handleSave} on:close={closeModal} />
-  {/if}
-
   <!-- Quick-Add (FAB "+" button) -->
   {#if quickAddWine}
     <InventoryQuickAdd wine={quickAddWine} isNew={true} fromLibrary={false} on:confirm={handleDirectQuickAdd} on:cancel={() => quickAddWine = null} />
@@ -704,7 +699,7 @@ function handleLibraryView(e) {
 
   <!-- Map -->
   {#if showMap}
-    <WineMap {wines} on:close={() => showMap = false} on:selectWine={(e) => { showMap = false; editingWine = e.detail; modalHideStock = true; showModal = true; }} />
+    <WineMap {wines} on:close={() => showMap = false} on:selectWine={(e) => { editingWine = e.detail; modalHideStock = true; showModal = true; }} />
   {/if}
 
   <!-- Regions -->
@@ -754,6 +749,11 @@ function handleLibraryView(e) {
       on:favorite={handleFavorite}
       on:edit={(e) => { selectedWine = null; editingWine = e.detail; showModal = true; }}
     />
+  {/if}
+
+  <!-- Edit/add form: rendered after the map, regions and detail panels so it stacks on top of them -->
+  {#if showModal}
+    <AddWineModal wine={editingWine} prefill={libraryPrefill} hideStock={modalHideStock || inventoryMode} {customFields} on:save={handleSave} on:close={closeModal} />
   {/if}
 
   <!-- Library -->

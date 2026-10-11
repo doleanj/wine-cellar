@@ -24,6 +24,7 @@ from PIL import Image
 import pillow_heif
 pillow_heif.register_heif_opener()
 from pydantic import AfterValidator, BaseModel, Field, field_validator
+from regions_seed import REGIONS_SEED
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, text, func, or_
@@ -254,10 +255,34 @@ class WineCustomValue(Base):
     value = Column(String, default="")
 
 
+class Region(Base):
+    """Reference wine region (France): intro text, appellations and map image."""
+    __tablename__ = "regions"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    key = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    intro = Column(String, default="")
+    appellations = Column(String, default="[]")  # JSON list of appellation names
+    image_url = Column(String, default="")
+    sort_order = Column(Integer, default=0)
+
+
 Base.metadata.create_all(bind=engine)
 
 
 # ── Migrations ────────────────────────────────────────────────────────────────
+
+def _seed_regions():
+    with Session(engine) as db:
+        known = {r.key for r in db.query(Region).all()}
+        for i, seed in enumerate(REGIONS_SEED):
+            if seed["key"] not in known:
+                db.add(Region(key=seed["key"], name=seed["name"], sort_order=i,
+                              appellations=json.dumps(seed["appellations"], ensure_ascii=False)))
+        db.commit()
+
+_seed_regions()
+
 
 def _migrate_library_columns():
     """Add stock columns to wine_library if missing (for existing installs)."""
@@ -1016,6 +1041,62 @@ def delete_drink_rule(rule_id: int, db: Session = Depends(get_db), _=Depends(req
     db.delete(rule)
     db.commit()
     return {"ok": True}
+
+
+# ── Regions ───────────────────────────────────────────────────────────────────
+
+class RegionResponse(BaseModel):
+    key: str
+    name: str
+    intro: str = ""
+    appellations: List[str] = []
+    image_url: str = ""
+
+
+class RegionUpdate(BaseModel):
+    name: Optional[str] = None
+    intro: Optional[str] = None
+    appellations: Optional[List[str]] = None
+    image_url: Optional[str] = None
+
+    @field_validator("image_url")
+    @classmethod
+    def _image_url_local(cls, v):
+        # only images served by this app (uploaded through /upload) or empty
+        if v and not v.startswith("/api/images/"):
+            raise ValueError("image_url must be an uploaded image (/api/images/...)")
+        return v
+
+
+def _region_to_response(r: Region) -> RegionResponse:
+    try:
+        apps = json.loads(r.appellations or "[]")
+    except json.JSONDecodeError:
+        apps = []
+    return RegionResponse(key=r.key, name=r.name, intro=r.intro or "", appellations=apps, image_url=r.image_url or "")
+
+
+@app.get("/regions", response_model=List[RegionResponse])
+def get_regions(db: Session = Depends(get_db), _=Depends(require_login_or_kiosk)):
+    return [_region_to_response(r) for r in db.query(Region).order_by(Region.sort_order, Region.id).all()]
+
+
+@app.put("/regions/{key}", response_model=RegionResponse)
+def update_region(key: str, data: RegionUpdate, db: Session = Depends(get_db), _=Depends(require_auth)):
+    r = db.query(Region).filter(Region.key == key).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Region nicht gefunden")
+    if data.name is not None:
+        r.name = data.name.strip() or r.name
+    if data.intro is not None:
+        r.intro = data.intro
+    if data.appellations is not None:
+        r.appellations = json.dumps([a.strip() for a in data.appellations if a.strip()], ensure_ascii=False)
+    if data.image_url is not None:
+        r.image_url = data.image_url
+    db.commit()
+    notify_clients()
+    return _region_to_response(r)
 
 
 # ── Custom Fields ─────────────────────────────────────────────────────────────

@@ -308,5 +308,8 @@
   "sweetness_doux": "Sweet",
   "sweetness_moelleux": "Mellow (sweet white)",
   "pairing_other": "Other pairings (free text)",
-  "detail_link": "Open link"
+  "detail_link": "Open link",
+  "detail_region": "Region",
+  "detail_region_enlarge": "Enlarge map",
+  "detail_region_close": "Close map"
 }

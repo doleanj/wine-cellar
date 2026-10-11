@@ -4,6 +4,12 @@
   import Modal from './Modal.svelte';
   import TasteBadge from './TasteBadge.svelte';
   import { pairingItems } from '$lib/wine-reference.js';
+  import { onMount } from 'svelte';
+  import { regions, loadRegions, matchRegion } from '$lib/regions.js';
+
+  onMount(loadRegions);
+  $: regionMatch = matchRegion(wine, $regions);
+  let mapOpen = false;
 
   export let wine;
   export let editable = false;
@@ -150,6 +156,18 @@
           </div>
         {/if}
 
+        {#if regionMatch}
+          <div class="region">
+            <span class="prop-label">{$t('detail_region')}: {regionMatch.region.name}{#if regionMatch.appellation} · {regionMatch.appellation}{/if}</span>
+            {#if regionMatch.region.image_url}
+              <button type="button" class="region-map" on:click={() => mapOpen = true} title={$t('detail_region_enlarge')}>
+                <img src={regionMatch.region.image_url} alt={regionMatch.region.name} loading="lazy" />
+              </button>
+            {/if}
+            {#if regionMatch.region.intro}<p class="region-intro">{regionMatch.region.intro}</p>{/if}
+          </div>
+        {/if}
+
         {#if wine.url}
           <a class="wine-link" href={wine.url} target="_blank" rel="noopener noreferrer">🔗 {$t('detail_link')}</a>
         {/if}
@@ -193,6 +211,12 @@
 
   </div>
 </Modal>
+
+{#if mapOpen && regionMatch?.region.image_url}
+  <button type="button" class="map-overlay" on:click={() => mapOpen = false} aria-label={$t('detail_region_close')}>
+    <img src={regionMatch.region.image_url} alt={regionMatch.region.name} />
+  </button>
+{/if}
 
 <style>
   .panel {
@@ -412,6 +436,12 @@
     padding-left: 12px;
   }
 
+  .region { margin-top: 12px; }
+  .region-map { display: block; width: 100%; padding: 0; margin-top: 6px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: none; cursor: zoom-in; }
+  .region-map img { display: block; width: 100%; height: auto; }
+  .region-intro { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-muted); }
+  .map-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.8); cursor: zoom-out; border: none; width: 100%; }
+  .map-overlay img { max-width: 100%; max-height: 100%; border-radius: 8px; }
   .profile { display: flex; align-items: center; gap: 12px; margin: 10px 0; }
   .pair-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .pair-chip { padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; background: var(--surface-2); }

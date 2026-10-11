@@ -276,6 +276,12 @@ export async function updateSettings(data) {
   return r.json();
 }
 
+export async function getRegions() {
+  const r = await fetch(`${BASE}/regions`, { headers: authHeaders() });
+  if (!r.ok) throw new Error('Fehler beim Laden');
+  return r.json();
+}
+
 export async function getCustomFields() {
   const r = await fetch(`${BASE}/custom-fields`, { headers: authHeaders() });
   if (!r.ok) return [];

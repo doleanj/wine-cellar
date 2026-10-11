@@ -308,5 +308,8 @@
   "sweetness_doux": "Süß",
   "sweetness_moelleux": "Lieblich (süßer Weißwein)",
   "pairing_other": "Weitere Empfehlungen (Freitext)",
-  "detail_link": "Link öffnen"
+  "detail_link": "Link öffnen",
+  "detail_region": "Region",
+  "detail_region_enlarge": "Karte vergrößern",
+  "detail_region_close": "Karte schließen"
 }

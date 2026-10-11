@@ -6,6 +6,13 @@ A self-hosted wine cellar management app. Track your collection, scan barcodes, 
 
 ![Wine Cellar Banner](frontend/static/logo/wine-cellar-banner.svg)
 
+## Fork additions
+
+- **Food pairings:** 21 categories (picker with icons) stored as keys in the existing `pairings` field; free text still works.
+- **Taste profile:** fruit and personality scores (1-5) drawn as a round badge, plus sweetness (sec / doux / moelleux).
+- **Optional link** per wine (http/https only).
+- **French wine regions:** 10 regions with appellation lists are seeded automatically; a wine whose `region` text contains a region name or one of its appellations shows that region's map and text. Intro texts and map images are not in this repository (third-party material). Load your own with `scripts/load_region_assets.py` (see its docstring), or edit a region via `PUT /regions/{key}` and `POST /upload`.
+
 ## Screenshots
 
 | Collection | Wine Details | Kiosk |

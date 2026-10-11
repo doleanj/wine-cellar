@@ -514,7 +514,10 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: 100%;
+    /* fill the panel but never outgrow it (panel max-height: 90vh), so .modal-content scrolls */
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
   }
 
   /* ── Header ────────────────────────────────────────────── */

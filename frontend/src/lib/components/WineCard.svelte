@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { t } from '$lib/stores/i18n.js';
+  import { t, lang } from '$lib/stores/i18n.js';
+  import { pairingItems } from '$lib/wine-reference.js';
 
   export let wine;
   export let readonly = false;
@@ -165,7 +166,11 @@
     {/if}
 
     {#if wine.pairings}
-      <div class="pairings" title="Speisenempfehlung">🍽 {wine.pairings}</div>
+      <div class="pairings" title={$t('detail_pairings')}>
+        {#each pairingItems(wine.pairings, $lang) as p}
+          <span class="pair-item" title={p.known ? `${p.label} (${p.title})` : p.label}><span aria-hidden="true">{p.icon}</span>{#if !p.known}&nbsp;{p.label}{/if}</span>
+        {/each}
+      </div>
     {/if}
 
     {#if inventoryMode}
@@ -398,6 +403,7 @@
     border-radius: 8px;
     font-weight: 500;
   }
+  .pair-item { margin-right: 4px; }
   .pairings {
     font-size: 11px;
     color: var(--text-muted);

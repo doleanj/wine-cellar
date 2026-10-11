@@ -2,6 +2,8 @@
   import { createEventDispatcher } from 'svelte';
   import { t, lang } from '$lib/stores/i18n.js';
   import Modal from './Modal.svelte';
+  import TasteBadge from './TasteBadge.svelte';
+  import { pairingItems } from '$lib/wine-reference.js';
 
   export let wine;
   export let editable = false;
@@ -128,11 +130,28 @@
           <p class="description">{wine.description}</p>
         {/if}
 
+        {#if wine.profile_fruit || wine.profile_personality || wine.sweetness}
+          <div class="profile">
+            <TasteBadge fruit={wine.profile_fruit} personality={wine.profile_personality} size={88} />
+            {#if wine.sweetness}
+              <span class="chip">{$t(`sweetness_${wine.sweetness}`)}</span>
+            {/if}
+          </div>
+        {/if}
+
         {#if wine.pairings}
           <div class="pairings">
             <span class="prop-label">{$t('detail_pairings')}</span>
-            <p>{wine.pairings}</p>
+            <div class="pair-chips">
+              {#each pairingItems(wine.pairings, $lang) as p}
+                <span class="pair-chip" title={p.known ? p.title : p.label}><span aria-hidden="true">{p.icon}</span> {p.label}</span>
+              {/each}
+            </div>
           </div>
+        {/if}
+
+        {#if wine.url}
+          <a class="wine-link" href={wine.url} target="_blank" rel="noopener noreferrer">🔗 {$t('detail_link')}</a>
         {/if}
 
         {#if wine.notes}
@@ -393,6 +412,11 @@
     padding-left: 12px;
   }
 
+  .profile { display: flex; align-items: center; gap: 12px; margin: 10px 0; }
+  .pair-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .pair-chip { padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; background: var(--surface-2); }
+  .wine-link { display: inline-block; margin-top: 8px; color: var(--primary); font-size: 13px; text-decoration: none; }
+  .wine-link:hover { text-decoration: underline; }
   .pairings, .notes {
     display: flex;
     flex-direction: column;

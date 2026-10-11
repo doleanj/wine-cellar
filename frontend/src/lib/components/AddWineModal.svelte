@@ -4,6 +4,9 @@
   import { lookupBarcode, uploadImage } from '$lib/api.js';
   import { t, lang } from '$lib/stores/i18n.js';
   import BarcodeScanner from './BarcodeScanner.svelte';
+  import PairingPicker from './PairingPicker.svelte';
+  import TasteBadge from './TasteBadge.svelte';
+  import { PROFILE_MIN, PROFILE_MAX, SWEETNESS } from '$lib/wine-reference.js';
 
   function autoResize(node) {
     function resize() {
@@ -28,7 +31,7 @@
     rating: null, quantity: 1, notes: '', price: null,
     barcode: '', image_url: '', body: '', acidity: '',
     pairings: '', description: '', by_glass: false, price_per_glass: null,
-    location: ''
+    location: '', url: '', profile_fruit: null, profile_personality: null, sweetness: ''
   };
 
   function initForm() {
@@ -364,6 +367,39 @@
                 </div>
               </div>
 
+              <div class="field span-2">
+                <label>{$t('modal_field_profile')}</label>
+                <div class="profile-edit">
+                  <TasteBadge fruit={form.profile_fruit} personality={form.profile_personality} size={84} />
+                  <div class="profile-axes">
+                    <div class="axis">
+                      <span class="axis-name">{$t('badge_fruit')}</span>
+                      <div class="segment-ctrl">
+                        {#each Array.from({ length: PROFILE_MAX - PROFILE_MIN + 1 }, (_, i) => i + PROFILE_MIN) as n}
+                          <button type="button" class:seg-active={form.profile_fruit === n} on:click={() => form.profile_fruit = form.profile_fruit === n ? null : n}>{n}</button>
+                        {/each}
+                      </div>
+                    </div>
+                    <div class="axis">
+                      <span class="axis-name">{$t('badge_personality')}</span>
+                      <div class="segment-ctrl">
+                        {#each Array.from({ length: PROFILE_MAX - PROFILE_MIN + 1 }, (_, i) => i + PROFILE_MIN) as n}
+                          <button type="button" class:seg-active={form.profile_personality === n} on:click={() => form.profile_personality = form.profile_personality === n ? null : n}>{n}</button>
+                        {/each}
+                      </div>
+                    </div>
+                    <div class="axis">
+                      <span class="axis-name">{$t('modal_field_sweetness')}</span>
+                      <div class="segment-ctrl">
+                        {#each SWEETNESS as sw}
+                          <button type="button" class:seg-active={form.sweetness === sw} on:click={() => form.sweetness = form.sweetness === sw ? '' : sw}>{$t(`sweetness_${sw}`)}</button>
+                        {/each}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="field-divider"></div>
 
               <div class="field span-2">
@@ -377,8 +413,13 @@
               </div>
 
               <div class="field span-2">
-                <label for="pairings">{$t('modal_field_pairings')}</label>
-                <input id="pairings" type="text" bind:value={form.pairings} placeholder={$t('modal_field_pairings')} />
+                <label>{$t('modal_field_pairings')}</label>
+                <PairingPicker bind:value={form.pairings} />
+              </div>
+
+              <div class="field span-2">
+                <label for="wine-url">{$t('modal_field_url')}</label>
+                <input id="wine-url" type="url" bind:value={form.url} placeholder="https://" maxlength="2000" />
               </div>
 
               <div class="field-divider"></div>
@@ -815,6 +856,11 @@
     font-size: 13px; color: var(--text-muted);
     margin-left: 8px;
   }
+
+  .profile-edit { display: flex; gap: 14px; align-items: center; }
+  .profile-axes { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .axis { display: flex; flex-direction: column; gap: 3px; }
+  .axis-name { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
   /* ── Segmented control (body / acidity) ─────────────────── */
   .segment-ctrl {

@@ -297,5 +297,16 @@
   "custom_fields_type_date": "Date",
   "custom_fields_sort_order": "Sort order",
   "custom_fields_section": "Custom Fields",
-  "custom_fields_in_modal": "Additional Fields"
+  "custom_fields_in_modal": "Additional Fields",
+
+  "badge_fruit": "Fruit",
+  "badge_personality": "Personality",
+  "modal_field_profile": "Taste profile",
+  "modal_field_sweetness": "Sweetness",
+  "modal_field_url": "Link (optional)",
+  "sweetness_sec": "Dry",
+  "sweetness_doux": "Sweet",
+  "sweetness_moelleux": "Mellow (sweet white)",
+  "pairing_other": "Other pairings (free text)",
+  "detail_link": "Open link"
 }

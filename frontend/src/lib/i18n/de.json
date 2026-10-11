@@ -297,5 +297,16 @@
   "custom_fields_type_date": "Datum",
   "custom_fields_sort_order": "Reihenfolge",
   "custom_fields_section": "Eigene Felder",
-  "custom_fields_in_modal": "Weitere Felder"
+  "custom_fields_in_modal": "Weitere Felder",
+
+  "badge_fruit": "Frucht",
+  "badge_personality": "Persönlichkeit",
+  "modal_field_profile": "Geschmacksprofil",
+  "modal_field_sweetness": "Süße",
+  "modal_field_url": "Link (optional)",
+  "sweetness_sec": "Trocken",
+  "sweetness_doux": "Süß",
+  "sweetness_moelleux": "Lieblich (süßer Weißwein)",
+  "pairing_other": "Weitere Empfehlungen (Freitext)",
+  "detail_link": "Link öffnen"
 }

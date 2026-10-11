@@ -13,6 +13,8 @@ A self-hosted wine cellar management app. Track your collection, scan barcodes, 
 - **Optional link** per wine (http/https only).
 - **French wine regions:** 10 regions with appellation lists are seeded automatically; a wine whose `region` text contains a region name or one of its appellations shows that region's map and text. Intro texts and map images are not in this repository (third-party material). Load your own with `scripts/load_region_assets.py` (see its docstring), or edit a region via `PUT /regions/{key}` and `POST /upload`.
 
+- **Appellation map (France):** the map view draws the delimited area of each appellation your wines belong to (strong fill when the appellation is known, light fill for region-only wines). Polygons are built from the INAO list of AOC/AOP communes ([data.gouv.fr](https://www.data.gouv.fr/datasets/aires-geographiques-des-aoc-aop), Licence Ouverte) joined with commune outlines from [geo.api.gouv.fr](https://geo.api.gouv.fr) (IGN, open data) by `scripts/build_appellation_geo.py`; commune level, so borders are approximate. Output: `frontend/static/geo/appellations.geojson`.
+
 ## Screenshots
 
 | Collection | Wine Details | Kiosk |

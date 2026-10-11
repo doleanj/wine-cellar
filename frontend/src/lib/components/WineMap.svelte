@@ -3,6 +3,8 @@
   import Modal from './Modal.svelte';
   import 'leaflet/dist/leaflet.css';
   import { t } from '$lib/stores/i18n.js';
+  import { loadGeo, groupWinesByGeo } from '$lib/geo.js';
+  import { loadRegions } from '$lib/regions.js';
 
   export let wines = [];
 
@@ -179,7 +181,7 @@
 
     map = L.map(mapEl, { zoomControl: true }).setView([30, 15], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> · Appellations: INAO / IGN (Licence Ouverte)',
       maxZoom: 13,
     }).addTo(map);
 
@@ -195,7 +197,8 @@
     const byCountry = {};
     for (const [loc, list] of Object.entries(byLocation)) {
       if (loc === '__unknown__') continue;
-      const country = resolveCountry(loc);
+      // region text first, then the wine's own country field (e.g. region "Pauillac", country "France")
+      const country = resolveCountry(loc) || list.map(w => resolveCountry(w.country)).find(Boolean);
       if (!country || !COUNTRY_COORDS[country]) continue;
       if (!byCountry[country]) byCountry[country] = [];
       byCountry[country].push(...list);
@@ -226,6 +229,27 @@
         .addTo(regionLayer);
     }
 
+    // Appellation polygons (France): strong fill when the appellation is known, light fill for region-only wines
+    const geoLayer = L.layerGroup();
+    Promise.all([loadGeo(), loadRegions()]).then(([features, regionList]) => {
+      const shapes = [];
+      for (const [f, info] of groupWinesByGeo(wines, features, regionList)) {
+        const strong = info.level === 'appellation';
+        shapes.push(L.geoJSON(f));
+        L.geoJSON(f, {
+          style: { color: '#7B1D3F', weight: strong ? 2 : 1, fillColor: '#7B1D3F', fillOpacity: strong ? 0.35 : 0.1 },
+        })
+          .bindPopup(buildPopup(strong ? f.properties.name : info.label, info.wines), { maxWidth: 300 })
+          .addTo(geoLayer);
+      }
+      // no country marker to centre on: fit the map to the polygons instead
+      if (shapes.length && countryBounds.length === 0) {
+        const bounds = shapes.reduce((b, s) => b.extend(s.getBounds()), L.latLngBounds([]));
+        setTimeout(() => { map.invalidateSize(); map.fitBounds(bounds, { padding: [30, 30], maxZoom: 8 }); updateLayers(); }, 150);
+      }
+      updateLayers();
+    });
+
     // Popup click → open detail
     map.on('popupopen', (e) => {
       const container = e.popup.getElement();
@@ -242,9 +266,11 @@
       const zoom = map.getZoom();
       if (zoom >= ZOOM_THRESHOLD) {
         countryLayer.removeFrom(map);
+        geoLayer.addTo(map);
         regionLayer.addTo(map);
       } else {
         regionLayer.removeFrom(map);
+        geoLayer.removeFrom(map);
         countryLayer.addTo(map);
       }
     }
@@ -309,7 +335,7 @@
     for (const w of wines) {
       const key = (w.region || w.country || '').trim();
       if (!key) continue;
-      const country = resolveCountry(key) || key;
+      const country = resolveCountry(key) || resolveCountry(w.country) || key;
       groups[country] = (groups[country] || 0) + 1;
     }
     return Object.entries(groups).sort((a, b) => b[1] - a[1]);
@@ -317,7 +343,7 @@
 
   $: unknownCount = wines.filter(w => {
     const key = (w.region || w.country || '').trim();
-    return !key || !resolveCountry(key);
+    return !key || !(resolveCountry(key) || resolveCountry(w.country));
   }).length;
 </script>
 

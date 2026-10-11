@@ -10,7 +10,7 @@ import uuid
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, List, Literal
+from typing import Annotated, Optional, List, Literal
 from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException, Depends, File, Header, Query, Request, UploadFile
@@ -23,7 +23,7 @@ from jose import JWTError, jwt
 from PIL import Image
 import pillow_heif
 pillow_heif.register_heif_opener()
-from pydantic import BaseModel, field_validator
+from pydantic import AfterValidator, BaseModel, Field, field_validator
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, text, func, or_
@@ -173,6 +173,11 @@ class WineLibrary(Base):
     pairings = Column(String, default="")
     description = Column(String, default="")
     wineapi_id = Column(String, default="")
+    # Wine Cellar extensions
+    url = Column(String, default="")
+    profile_fruit = Column(Integer, nullable=True)         # 1 = léger … 5 = prononcé
+    profile_personality = Column(Integer, nullable=True)   # 1 = léger … 5 = puissant
+    sweetness = Column(String, default="")                 # "", sec, doux, moelleux
     saved_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
     created_by = Column(String, default="")
@@ -261,6 +266,10 @@ def _migrate_library_columns():
         ("by_glass",        "INTEGER DEFAULT 0"),
         ("price_per_glass", "REAL"),
         ("location",        "TEXT DEFAULT ''"),
+        ("url",                 "TEXT DEFAULT ''"),
+        ("profile_fruit",       "INTEGER"),
+        ("profile_personality", "INTEGER"),
+        ("sweetness",           "TEXT DEFAULT ''"),
     ]
     with engine.connect() as conn:
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(wine_library)"))}
@@ -568,6 +577,19 @@ def require_login_or_kiosk(authorization: str = Header(default=""), db: Session 
 WineType = Literal["red", "white", "rosé", "sparkling", "dessert", "other"]
 WineBody = Literal["", "Light-bodied", "Medium-bodied", "Full-bodied"]
 WineAcidity = Literal["", "Low", "Medium", "High"]
+WineSweetness = Literal["", "sec", "doux", "moelleux"]
+ProfileScore = Annotated[int, Field(ge=1, le=5)]
+
+
+def _check_wine_url(v: str) -> str:
+    """Optional link per wine; only http(s) so it is safe to render as an <a href>."""
+    v = (v or "").strip()
+    if v and (len(v) > 2000 or urlparse(v).scheme not in ("http", "https") or not urlparse(v).netloc):
+        raise ValueError("url must be a valid http(s) address")
+    return v
+
+
+WineUrl = Annotated[str, AfterValidator(_check_wine_url)]
 
 
 class WineCreate(BaseModel):
@@ -590,6 +612,10 @@ class WineCreate(BaseModel):
     pairings: str = ""
     description: str = ""
     wineapi_id: str = ""
+    url: WineUrl = ""
+    profile_fruit: Optional[ProfileScore] = None
+    profile_personality: Optional[ProfileScore] = None
+    sweetness: WineSweetness = ""
     by_glass: bool = False
     price_per_glass: Optional[float] = None
     location: str = ""
@@ -616,6 +642,10 @@ class WineUpdate(BaseModel):
     pairings: Optional[str] = None
     description: Optional[str] = None
     wineapi_id: Optional[str] = None
+    url: Optional[WineUrl] = None
+    profile_fruit: Optional[ProfileScore] = None
+    profile_personality: Optional[ProfileScore] = None
+    sweetness: Optional[WineSweetness] = None
     by_glass: Optional[bool] = None
     price_per_glass: Optional[float] = None
     location: Optional[str] = None
@@ -643,6 +673,10 @@ class WineResponse(BaseModel):
     pairings: str
     description: str
     wineapi_id: str
+    url: str = ""
+    profile_fruit: Optional[int] = None
+    profile_personality: Optional[int] = None
+    sweetness: str = ""
     by_glass: bool
     price_per_glass: Optional[float]
     location: str
@@ -1332,6 +1366,7 @@ _EXPORT_FIELDS = [
     'name', 'producer', 'vintage', 'type', 'grape', 'region', 'country',
     'location', 'quantity', 'price', 'alcohol', 'rating', 'body', 'acidity',
     'pairings', 'description', 'notes', 'barcode', 'image_url', 'wineapi_id',
+    'url', 'profile_fruit', 'profile_personality', 'sweetness',
 ]
 
 
@@ -1369,6 +1404,17 @@ async def import_wines(file: UploadFile = File(...), db: Session = Depends(get_d
     def _make_entry(row: dict) -> WineLibrary:
         def _int(v): return int(v) if str(v).strip() not in ('', 'None', 'null') else None
         def _float(v): return float(v) if str(v).strip() not in ('', 'None', 'null') else None
+        def _safe_url(v):
+            try:
+                return _check_wine_url(str(v or ''))
+            except ValueError:
+                return ''
+        def _score(v):
+            try:
+                n = _int(v)
+            except (TypeError, ValueError):
+                return None
+            return n if n is not None and 1 <= n <= 5 else None
         return WineLibrary(
             name=row.get('name', '').strip(),
             producer=row.get('producer', '') or '',
@@ -1389,6 +1435,10 @@ async def import_wines(file: UploadFile = File(...), db: Session = Depends(get_d
             barcode=row.get('barcode', '') or '',
             image_url=row.get('image_url', '') or '',
             wineapi_id=row.get('wineapi_id', '') or '',
+            url=_safe_url(row.get('url')),
+            profile_fruit=_score(row.get('profile_fruit')),
+            profile_personality=_score(row.get('profile_personality')),
+            sweetness=row.get('sweetness') if row.get('sweetness') in ('sec', 'doux', 'moelleux') else '',
         )
 
     fname = (file.filename or '').lower()

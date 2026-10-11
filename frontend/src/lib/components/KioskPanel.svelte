@@ -12,8 +12,8 @@
   let success = false;
 
   let kioskEnabled = true;
-  let kioskTitle = 'Weinkarte';
-  let kioskSubtitle = 'Unsere Weinauswahl';
+  let kioskTitle = 'Wine list';
+  let kioskSubtitle = 'Our wine selection';
   let kioskShowFooter = true;
   let kioskShowMap = true;
   let kioskShowDrinkWindow = false;
@@ -110,11 +110,11 @@
           <div class="section-title">{$t('kiosk_panel_section_branding')}</div>
           <div class="field">
             <label for="kiosk-title">{$t('kiosk_panel_field_title')}</label>
-            <input id="kiosk-title" type="text" bind:value={kioskTitle} disabled={!kioskEnabled} placeholder="Weinkarte" />
+            <input id="kiosk-title" type="text" bind:value={kioskTitle} disabled={!kioskEnabled} placeholder={$t('kiosk_title_placeholder')} />
           </div>
           <div class="field">
             <label for="kiosk-subtitle">{$t('kiosk_panel_field_subtitle')}</label>
-            <input id="kiosk-subtitle" type="text" bind:value={kioskSubtitle} disabled={!kioskEnabled} placeholder="Unsere Weinauswahl" />
+            <input id="kiosk-subtitle" type="text" bind:value={kioskSubtitle} disabled={!kioskEnabled} placeholder={$t('kiosk_subtitle_placeholder')} />
           </div>
           <label class="toggle-row slim">
             <div class="toggle-info">

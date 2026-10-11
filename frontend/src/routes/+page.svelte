@@ -278,7 +278,7 @@ function handleLibraryView(e) {
       // Reload in case wine moved from 0→visible or changed position
       wines = await getWines();
       stats = await getStats();
-      showToast(`${wine.name} hinzugefügt`);
+      showToast($t('toast_added').replace('{name}', wine.name));
     } catch {
       showToast($t('toast_error_save'));
     }
@@ -464,7 +464,7 @@ function handleLibraryView(e) {
         {/if}
 
         <div class="burger-wrap">
-          <button class="burger-btn" on:click={() => showMenu = !showMenu} aria-label="Menü" title="Einstellungen">
+          <button class="burger-btn" on:click={() => showMenu = !showMenu} aria-label={$t('menu_aria')} title={$t('menu_settings')}>
             <span class="bar" class:open={showMenu}></span>
             <span class="bar" class:open={showMenu}></span>
             <span class="bar" class:open={showMenu}></span>
@@ -675,7 +675,7 @@ function handleLibraryView(e) {
       <span class="inv-label">{$t('inventory_mode_label')}</span>
       <button class="inv-exit" on:click={exitInventoryMode}>{$t('inventory_exit')}</button>
     </div>
-    <button class="fab fab-scan" on:click={() => showInventoryScanner = true} title="Barcode scannen" aria-label="Barcode scannen">
+    <button class="fab fab-scan" on:click={() => showInventoryScanner = true} title={$t('action_scan_barcode')} aria-label={$t('action_scan_barcode')}>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="2" y="2" width="6" height="6" rx="1"/><rect x="16" y="2" width="6" height="6" rx="1"/>
         <rect x="2" y="16" width="6" height="6" rx="1"/>
@@ -1157,15 +1157,15 @@ function handleLibraryView(e) {
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 600;
-    color: var(--danger);
-    background: none;
-    border: 1px solid rgba(192,57,43,0.3);
+    color: #a52a1f;
+    background: #e4e4e4;
+    border: 1px solid #c9c9c9;
     border-radius: 6px;
     padding: 3px 10px;
     cursor: pointer;
     transition: background 0.15s;
   }
-  .menu-logout:hover { background: rgba(192,57,43,0.08); }
+  .menu-logout:hover { background: #d5d5d5; }
 
   /* Main */
   .main {

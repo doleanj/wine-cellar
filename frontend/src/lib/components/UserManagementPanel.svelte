@@ -81,7 +81,7 @@
   }
 
   async function handleDelete(user) {
-    if (!confirm(`${$t('users_title')}: „${user.username}" löschen?`)) return;
+    if (!confirm($t('users_confirm_delete').replace('{name}', user.username))) return;
     try {
       await deleteUser(user.id);
       await load();
@@ -155,14 +155,14 @@
                   <span class="role-badge role-{user.role}">{roleLabel[user.role]}</span>
                 </div>
                 <div class="row-actions">
-                  <button class="icon-btn" title="Bearbeiten" aria-label="Bearbeiten" on:click={() => startEdit(user)}>
+                  <button class="icon-btn" title={$t('action_edit')} aria-label={$t('action_edit')} on:click={() => startEdit(user)}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
                   </button>
                   {#if user.id !== $auth?.id}
-                    <button class="icon-btn danger" title="Löschen" aria-label="Löschen" on:click={() => handleDelete(user)}>
+                    <button class="icon-btn danger" title={$t('action_delete')} aria-label={$t('action_delete')} on:click={() => handleDelete(user)}>
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/>
                         <path d="M19 6l-1 14H6L5 6"/>

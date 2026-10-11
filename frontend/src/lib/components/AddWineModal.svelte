@@ -172,7 +172,7 @@
 
         <!-- ─── Left: Image Panel ─────────────────────────────── -->
         <aside class="image-panel">
-          <span class="panel-section-label">Bild</span>
+          <span class="panel-section-label">{$t('modal_image_label')}</span>
           <div
             class="img-container"
             class:has-image={!!form.image_url}
@@ -194,7 +194,7 @@
                   <path d="M8 2h8v2a4 4 0 014 4v10a4 4 0 01-4 4H8a4 4 0 01-4-4V8a4 4 0 014-4V2z"/>
                   <path d="M12 10v6m-3-3h6"/>
                 </svg>
-                <span>Kein Foto</span>
+                <span>{$t('modal_no_photo')}</span>
               </div>
             {/if}
           </div>
@@ -233,7 +233,7 @@
                   <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/>
                   <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
                 </svg>
-                Einfügen
+                {$t('modal_paste')}
               </button>
             </div>
 
@@ -247,7 +247,7 @@
                 placeholder={$t('modal_search_placeholder')}
                 bind:value={form.barcode}
               />
-              <button class="btn-camera" type="button" title="Barcode scannen" on:click={() => showScanner = true}>
+              <button class="btn-camera" type="button" title={$t('action_scan_barcode')} on:click={() => showScanner = true}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
                   <circle cx="12" cy="13" r="4"/>
@@ -438,7 +438,7 @@
 
               <div class="field span-2">
                 <label for="location">{$t('modal_field_location')}</label>
-                <input id="location" type="text" bind:value={form.location} placeholder="z.B. Regal A3, Kühlschrank" />
+                <input id="location" type="text" bind:value={form.location} placeholder={$t('modal_location_placeholder')} />
               </div>
 
               <div class="field span-2">
@@ -485,10 +485,10 @@
       {#if wine}
         <div class="audit-info">
           {#if wine.created_by || wine.saved_at}
-            <span>Erstellt {wine.saved_at ? new Date(wine.saved_at + 'Z').toLocaleString('de-AT', {dateStyle:'short', timeStyle:'short'}) : ''}{wine.created_by ? ` · ${wine.created_by}` : ''}</span>
+            <span>{$t('modal_created')} {wine.saved_at ? new Date(wine.saved_at + 'Z').toLocaleString($lang === 'de' ? 'de-AT' : 'en-GB', {dateStyle:'short', timeStyle:'short'}) : ''}{wine.created_by ? ` · ${wine.created_by}` : ''}</span>
           {/if}
           {#if wine.updated_by || wine.updated_at}
-            <span>Bearbeitet {wine.updated_at ? new Date(wine.updated_at + 'Z').toLocaleString('de-AT', {dateStyle:'short', timeStyle:'short'}) : ''}{wine.updated_by ? ` · ${wine.updated_by}` : ''}</span>
+            <span>{$t('modal_edited')} {wine.updated_at ? new Date(wine.updated_at + 'Z').toLocaleString($lang === 'de' ? 'de-AT' : 'en-GB', {dateStyle:'short', timeStyle:'short'}) : ''}{wine.updated_by ? ` · ${wine.updated_by}` : ''}</span>
           {/if}
         </div>
       {/if}

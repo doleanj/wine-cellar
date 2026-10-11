@@ -76,7 +76,7 @@
         <h2 id="branding-panel-title">{$t('branding_panel_title')}</h2>
         <p class="subtitle-hd">{$t('branding_panel_subtitle')}</p>
       </div>
-      <button class="close-btn" on:click={() => dispatch('close')} aria-label="Schließen">
+      <button class="close-btn" on:click={() => dispatch('close')} aria-label={$t('action_close')}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
@@ -124,12 +124,12 @@
         <p class="desc">{$t('branding_color_desc')}</p>
         <div class="color-row">
           <div class="color-swatch" style="background:{color}">
-            <input type="color" bind:value={color} on:input={onColor} class="color-input" title="Farbe wählen" />
+            <input type="color" bind:value={color} on:input={onColor} class="color-input" title={$t('branding_pick_color')} />
           </div>
           <input type="text" class="hex-input" value={color} on:change={onHex} maxlength="7" placeholder="#7B1D3F" spellcheck="false" />
           <div class="color-preview">
-            <span class="preview-chip" style="background:{color}">Schaltfläche</span>
-            <span class="preview-chip outline" style="border-color:{color};color:{color}">Rahmen</span>
+            <span class="preview-chip" style="background:{color}">{$t('branding_preview_button')}</span>
+            <span class="preview-chip outline" style="border-color:{color};color:{color}">{$t('branding_preview_outline')}</span>
           </div>
         </div>
       </section>
@@ -147,7 +147,7 @@
         {#if logoUrl}
           <div class="logo-preview">
             <img src={logoUrl} alt="Logo" />
-            <button class="remove-btn" on:click={removeLogo} title="Logo entfernen">
+            <button class="remove-btn" on:click={removeLogo} title={$t('branding_remove_logo')}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
@@ -183,7 +183,7 @@
         </div>
         <div class="field">
           <label for="branding-subtitle">{$t('branding_label_subtitle')}</label>
-          <input id="branding-subtitle" type="text" bind:value={subtitle} on:input={onSubtitle} placeholder="Meine Weinsammlung" maxlength="60" />
+          <input id="branding-subtitle" type="text" bind:value={subtitle} on:input={onSubtitle} placeholder={$t('branding_subtitle_placeholder')} maxlength="60" />
         </div>
       </section>
 

@@ -1,4 +1,8 @@
+import { get } from 'svelte/store';
+import { t } from '$lib/stores/i18n.js';
+
 const BASE = '/api';
+const tr = key => get(t)(key);
 const AUTH_STORAGE = 'kellerlog_auth';
 
 export function getToken() {
@@ -30,7 +34,7 @@ export async function login(username, password) {
 export async function getMe() {
   const r = await fetch(`${BASE}/auth/me`, { headers: authHeaders() });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler');
+  if (!r.ok) throw new Error(tr('err_generic'));
   return r.json();
 }
 
@@ -40,13 +44,13 @@ export async function setMyLanguage(language) {
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ language }),
   });
-  if (!r.ok) throw new Error('Fehler');
+  if (!r.ok) throw new Error(tr('err_generic'));
 }
 
 export async function getUsers() {
   const r = await fetch(`${BASE}/auth/users`, { headers: authHeaders() });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler beim Laden');
+  if (!r.ok) throw new Error(tr('err_load'));
   return r.json();
 }
 
@@ -57,7 +61,7 @@ export async function createUser(data) {
     body: JSON.stringify(data),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error((await r.json()).detail || 'Fehler');
+  if (!r.ok) throw new Error((await r.json()).detail || tr('err_generic'));
   return r.json();
 }
 
@@ -68,19 +72,19 @@ export async function updateUser(id, data) {
     body: JSON.stringify(data),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error((await r.json()).detail || 'Fehler');
+  if (!r.ok) throw new Error((await r.json()).detail || tr('err_generic'));
   return r.json();
 }
 
 export async function deleteUser(id) {
   const r = await fetch(`${BASE}/auth/users/${id}`, { method: 'DELETE', headers: authHeaders() });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error((await r.json()).detail || 'Fehler');
+  if (!r.ok) throw new Error((await r.json()).detail || tr('err_generic'));
 }
 
 export async function getWines() {
   const r = await fetch(`${BASE}/wines`, { headers: authHeaders() });
-  if (!r.ok) throw new Error('Fehler beim Laden');
+  if (!r.ok) throw new Error(tr('err_load'));
   return r.json();
 }
 
@@ -91,7 +95,7 @@ export async function createWine(wine) {
     body: JSON.stringify(wine),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler beim Speichern');
+  if (!r.ok) throw new Error(tr('err_save'));
   return r.json();
 }
 
@@ -102,7 +106,7 @@ export async function updateWine(id, wine) {
     body: JSON.stringify(wine),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler beim Aktualisieren');
+  if (!r.ok) throw new Error(tr('err_update'));
   return r.json();
 }
 
@@ -113,7 +117,7 @@ export async function batchUpdateWines(ids, updates) {
     body: JSON.stringify({ ids, updates }),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error((await r.json()).detail || 'Fehler');
+  if (!r.ok) throw new Error((await r.json()).detail || tr('err_generic'));
   return r.json();
 }
 
@@ -123,7 +127,7 @@ export async function deleteWine(id) {
     headers: authHeaders(),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler beim Löschen');
+  if (!r.ok) throw new Error(tr('err_delete'));
 }
 
 
@@ -175,7 +179,7 @@ export async function searchLibrary(q) {
 
 export async function getLibrary() {
   const r = await fetch(`${BASE}/library`, { headers: authHeaders() });
-  if (!r.ok) throw new Error('Fehler beim Laden der Bibliothek');
+  if (!r.ok) throw new Error(tr('err_load_library'));
   return r.json();
 }
 
@@ -186,14 +190,14 @@ export async function updateLibraryEntry(id, data) {
     body: JSON.stringify(data),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler beim Aktualisieren');
+  if (!r.ok) throw new Error(tr('err_update'));
   return r.json();
 }
 
 export async function deleteLibraryEntry(id) {
   const r = await fetch(`${BASE}/library/${id}`, { method: 'DELETE', headers: authHeaders() });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler beim Löschen');
+  if (!r.ok) throw new Error(tr('err_delete'));
 }
 
 export async function exportWines(format) {
@@ -238,7 +242,7 @@ export async function createDrinkRule(data) {
     body: JSON.stringify(data),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error((await r.json()).detail || 'Fehler');
+  if (!r.ok) throw new Error((await r.json()).detail || tr('err_generic'));
   return r.json();
 }
 
@@ -249,14 +253,14 @@ export async function updateDrinkRule(id, data) {
     body: JSON.stringify(data),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler beim Speichern');
+  if (!r.ok) throw new Error(tr('err_save'));
   return r.json();
 }
 
 export async function deleteDrinkRule(id) {
   const r = await fetch(`${BASE}/drink-rules/${id}`, { method: 'DELETE', headers: authHeaders() });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler beim Löschen');
+  if (!r.ok) throw new Error(tr('err_delete'));
 }
 
 export async function getSettings() {
@@ -272,13 +276,13 @@ export async function updateSettings(data) {
     body: JSON.stringify(data),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler beim Speichern');
+  if (!r.ok) throw new Error(tr('err_save'));
   return r.json();
 }
 
 export async function getRegions() {
   const r = await fetch(`${BASE}/regions`, { headers: authHeaders() });
-  if (!r.ok) throw new Error('Fehler beim Laden');
+  if (!r.ok) throw new Error(tr('err_load'));
   return r.json();
 }
 
@@ -295,7 +299,7 @@ export async function createCustomField(data) {
     body: JSON.stringify(data),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error((await r.json()).detail || 'Fehler');
+  if (!r.ok) throw new Error((await r.json()).detail || tr('err_generic'));
   return r.json();
 }
 
@@ -306,12 +310,12 @@ export async function updateCustomField(id, data) {
     body: JSON.stringify(data),
   });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler');
+  if (!r.ok) throw new Error(tr('err_generic'));
   return r.json();
 }
 
 export async function deleteCustomField(id) {
   const r = await fetch(`${BASE}/custom-fields/${id}`, { method: 'DELETE', headers: authHeaders() });
   if (r.status === 401) throw new Error('UNAUTHORIZED');
-  if (!r.ok) throw new Error('Fehler');
+  if (!r.ok) throw new Error(tr('err_generic'));
 }

@@ -1,4 +1,5 @@
 <script>
+  import { t } from '$lib/stores/i18n.js';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { auth, isLoggedIn } from '$lib/stores/auth.js';
@@ -24,15 +25,15 @@
       goto('/');
     } catch (err) {
       error = err.message === 'INVALID_CREDENTIALS'
-        ? 'Benutzername oder Passwort falsch'
-        : 'Anmeldung fehlgeschlagen';
+        ? $t('login_invalid')
+        : $t('login_failed');
     } finally {
       loading = false;
     }
   }
 </script>
 
-<svelte:head><title>Anmelden — Wine Cellar</title></svelte:head>
+<svelte:head><title>{$t('login_title')} — Wine Cellar</title></svelte:head>
 
 <div class="page">
   <div class="card">
@@ -47,7 +48,7 @@
       {/if}
 
       <div class="field">
-        <label for="username">Benutzername</label>
+        <label for="username">{$t('login_username')}</label>
         <input
           id="username"
           type="text"
@@ -59,7 +60,7 @@
       </div>
 
       <div class="field">
-        <label for="password">Passwort</label>
+        <label for="password">{$t('login_password')}</label>
         <input
           id="password"
           type="password"
@@ -72,9 +73,9 @@
       <button type="submit" class="btn-login" disabled={loading || !username || !password}>
         {#if loading}
           <span class="spinner"></span>
-          Anmelden…
+          {$t('login_submitting')}
         {:else}
-          Anmelden
+          {$t('login_submit')}
         {/if}
       </button>
     </form>

@@ -282,7 +282,7 @@
     if (countryBounds.length > 0) {
       setTimeout(() => {
         if (countryBounds.length === 1) {
-          map.setView(countryBounds[0], 5);
+          map.setView(countryBounds[0], mapEl && mapEl.clientWidth > 900 ? 6 : 5);
         } else {
           map.fitBounds(countryBounds, { padding: [40, 40], maxZoom: 6 });
         }
@@ -347,7 +347,7 @@
   }).length;
 </script>
 
-<Modal variant="center" maxWidth="900px" labelledby="map-title" on:close={() => dispatch('close')}>
+<Modal variant="center" maxWidth="98vw" labelledby="map-title" on:close={() => dispatch('close')}>
   <div class="panel">
     <header class="panel-header">
       <div class="panel-title" id="map-title">
@@ -390,7 +390,8 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: 100%;
+    /* open as large as the screen allows (the modal panel itself is capped at 90vh) */
+    height: 88vh;
   }
 
   .panel-header {
@@ -426,7 +427,7 @@
 
   .map-container {
     flex: 1;
-    min-height: 380px;
+    min-height: 0;
   }
 
   .legend {

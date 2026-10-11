@@ -207,14 +207,14 @@ class AppSettings(Base):
 
     id = Column(Integer, primary_key=True, default=1)
     kiosk_enabled = Column(Boolean, default=True)
-    kiosk_title = Column(String, default="Weinkarte")
-    kiosk_subtitle = Column(String, default="Unsere Weinauswahl")
+    kiosk_title = Column(String, default="Wine list")
+    kiosk_subtitle = Column(String, default="Our wine selection")
     kiosk_show_footer = Column(Boolean, default=True)
     kiosk_show_map = Column(Boolean, default=True)
     primary_color = Column(String, default="#480f25")
     dark_mode = Column(Boolean, default=False)
     app_title = Column(String, default="Wine Cellar")
-    app_subtitle = Column(String, default="Meine Weinsammlung")
+    app_subtitle = Column(String, default="My wine collection")
     logo_url = Column(String, default="")
     show_drink_window = Column(Boolean, default=True)
     kiosk_show_drink_window = Column(Boolean, default=False)
@@ -314,7 +314,7 @@ def _migrate_settings():
         ("primary_color",                    "TEXT DEFAULT '#480f25'"),
         ("dark_mode",                        "INTEGER DEFAULT 0"),
         ("app_title",                        "TEXT DEFAULT 'Wine Cellar'"),
-        ("app_subtitle",                     "TEXT DEFAULT 'Meine Weinsammlung'"),
+        ("app_subtitle",                     "TEXT DEFAULT 'My wine collection'"),
         ("logo_url",                         "TEXT DEFAULT ''"),
         ("show_drink_window",                "INTEGER DEFAULT 1"),
         ("kiosk_show_drink_window",          "INTEGER DEFAULT 0"),

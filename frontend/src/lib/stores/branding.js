@@ -7,7 +7,7 @@ export const DEFAULTS = {
   primaryColor: '#480f25',
   darkMode: false,
   title: 'Wine Cellar',
-  subtitle: 'Meine Weinsammlung',
+  subtitle: 'My wine collection',
   logoUrl: '',
   showDrinkWindow: true,
   showZeroQuantityInDashboard: false,

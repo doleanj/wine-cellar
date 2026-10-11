@@ -10,8 +10,8 @@
   let wines = [];
   let loading = true;
   let kioskEnabled = true;
-  let kioskTitle = 'Weinkarte';
-  let kioskSubtitle = 'Unsere Weinauswahl';
+  let kioskTitle = 'Wine list';
+  let kioskSubtitle = 'Our wine selection';
   let kioskShowFooter = true;
   let kioskShowMap = true;
   let kioskShowDrinkWindow = false;
@@ -93,8 +93,8 @@
 {#if !loading && !kioskEnabled}
   <div class="unavailable">
     <img src="/logo/wine-cellar-icon.svg" alt="Wine Cellar" class="unavail-icon" />
-    <h2>Weinkarte nicht verfügbar</h2>
-    <p>Die Kiosk-Ansicht ist derzeit deaktiviert.</p>
+    <h2>{$t('kiosk_unavailable_title')}</h2>
+    <p>{$t('kiosk_unavailable_text')}</p>
   </div>
 {:else}
 <div class="kiosk">

@@ -1,7 +1,14 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import { getDrinkRules, createDrinkRule, updateDrinkRule, deleteDrinkRule, getGrapes } from '$lib/api.js';
-  import { t } from '$lib/stores/i18n.js';
+  import { t, lang } from '$lib/stores/i18n.js';
+
+  // The default rules are seeded in German by the backend; show English names when the UI is English.
+  const DEFAULT_RULE_NAMES = {
+    'Weißwein': 'White wine', 'Rotwein': 'Red wine', 'Roséwein': 'Rosé wine', 'Rosé': 'Rosé',
+    'Sekt / Schaumwein': 'Sparkling wine', 'Dessertwein': 'Dessert wine', 'Sonstige': 'Other',
+  };
+  const ruleName = (rule, language) => (language === 'en' ? DEFAULT_RULE_NAMES[rule.name] ?? rule.name : rule.name);
   import Modal from './Modal.svelte';
 
   const dispatch = createEventDispatcher();
@@ -218,19 +225,19 @@
                 <div class="rule-info">
                   <span class="type-dot" style="background:{rule.wine_type ? (TYPE_COLORS[rule.wine_type] ?? '#888') : '#aaa'}"></span>
                   <div class="rule-text">
-                    <span class="rule-name">{rule.name}</span>
-                    <span class="rule-meta">{ruleMatchLabel(rule)} · +{rule.from_offset} bis +{rule.to_offset} Jahre</span>
+                    <span class="rule-name">{ruleName(rule, $lang)}</span>
+                    <span class="rule-meta">{ruleMatchLabel(rule)} · {$t('drink_rules_range').replace('{from}', rule.from_offset).replace('{to}', rule.to_offset)}</span>
                   </div>
                   <div class="window-preview">{windowLabel(rule.from_offset, rule.to_offset)}</div>
                 </div>
                 <div class="row-actions">
-                  <button class="icon-btn" title="Bearbeiten" aria-label="Bearbeiten" on:click={() => startEdit(rule)}>
+                  <button class="icon-btn" title={$t('action_edit')} aria-label={$t('action_edit')} on:click={() => startEdit(rule)}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
                   </button>
-                  <button class="icon-btn danger" title="Löschen" aria-label="Löschen" on:click={() => handleDelete(rule)}>
+                  <button class="icon-btn danger" title={$t('action_delete')} aria-label={$t('action_delete')} on:click={() => handleDelete(rule)}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3 6 5 6 21 6"/>
                       <path d="M19 6l-1 14H6L5 6"/>
@@ -248,7 +255,7 @@
             {#if createError}<div class="err-inline">{createError}</div>{/if}
             <div class="field">
               <label for="new-name">{$t('drink_rules_name')}</label>
-              <input id="new-name" type="text" bind:value={newName} placeholder="z.B. Barolo / Gran Reserva" />
+              <input id="new-name" type="text" bind:value={newName} placeholder={$t('drink_rules_name_placeholder')} />
             </div>
             <div class="two-col">
               <div class="field">

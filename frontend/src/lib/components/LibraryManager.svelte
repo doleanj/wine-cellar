@@ -35,7 +35,7 @@
   });
 
   async function handleDelete(id) {
-    if (!confirm('Eintrag aus Weinbibliothek entfernen?')) return;
+    if (!confirm($t('library_confirm_remove'))) return;
     await deleteLibraryEntry(id);
     entries = entries.filter(e => e.id !== id);
   }
@@ -50,10 +50,10 @@
   <div class="panel">
     <div class="panel-header">
       <div>
-        <h2 id="library-title">Weinbibliothek</h2>
-        <p class="subtitle">Gespeicherte Weindaten — beim Suchen bevorzugt angezeigt</p>
+        <h2 id="library-title">{$t('library_title')}</h2>
+        <p class="subtitle">{$t('library_subtitle')}</p>
       </div>
-      <button class="close-btn" on:click={() => dispatch('close')} aria-label="Schließen">
+      <button class="close-btn" on:click={() => dispatch('close')} aria-label={$t('action_close')}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
@@ -66,7 +66,7 @@
       </svg>
       <input
         type="search"
-        placeholder="In Bibliothek suchen..."
+        placeholder={$t('library_search')}
         bind:value={filterText}
         class="search-input"
       />
@@ -78,10 +78,10 @@
       {:else if filtered.length === 0}
         <div class="empty">
           {#if entries.length === 0}
-            <p>Noch keine Weine in der Bibliothek.</p>
-            <p class="hint">Weindaten werden automatisch gespeichert, wenn du einen Wein hinzufügst oder bearbeitest.</p>
+            <p>{$t('library_empty')}</p>
+            <p class="hint">{$t('library_empty_hint')}</p>
           {:else}
-            <p>Kein Treffer für „{filterText}"</p>
+            <p>{$t('library_no_match').replace('{q}', filterText)}</p>
           {/if}
         </div>
       {:else}
@@ -117,8 +117,8 @@
               </div>
               <button
                 class="add-btn"
-                title="Zum Keller hinzufügen"
-                aria-label="Zum Keller hinzufügen"
+                title={$t('library_add_to_cellar')}
+                aria-label={$t('library_add_to_cellar')}
                 on:click|stopPropagation={() => dispatch('addToInventory', entry)}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -127,8 +127,8 @@
               </button>
               <button
                 class="icon-action-btn"
-                title="Duplizieren"
-                aria-label="Duplizieren"
+                title={$t('action_duplicate')}
+                aria-label={$t('action_duplicate')}
                 on:click|stopPropagation={() => dispatch('duplicateEntry', entry)}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -137,8 +137,8 @@
               </button>
               <button
                 class="icon-action-btn"
-                title="Bearbeiten"
-                aria-label="Bearbeiten"
+                title={$t('action_edit')}
+                aria-label={$t('action_edit')}
                 on:click|stopPropagation={() => dispatch('editEntry', entry)}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -148,8 +148,8 @@
               </button>
               <button
                 class="delete-btn"
-                title="Aus Bibliothek entfernen"
-                aria-label="Aus Bibliothek entfernen"
+                title={$t('library_remove')}
+                aria-label={$t('library_remove')}
                 on:click|stopPropagation={() => handleDelete(entry.id)}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

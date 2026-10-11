@@ -62,7 +62,7 @@
             <input type="checkbox" bind:checked={enable.location} />
             <span class="enable-label">{$t('modal_field_location')}</span>
           </label>
-          <input type="text" bind:value={values.location} disabled={!enable.location} placeholder="z.B. Regal A3" />
+          <input type="text" bind:value={values.location} disabled={!enable.location} placeholder={$t('batch_location_placeholder')} />
         </div>
 
         <div class="field-row" class:active={enable.producer}>

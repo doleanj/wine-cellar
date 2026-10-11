@@ -145,7 +145,7 @@
     <div class="wine-header">
       {#if !fromLibrary}
         <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-        <div class="wine-thumb" on:click={() => photoInput.click()} title="Foto aufnehmen">
+        <div class="wine-thumb" on:click={() => photoInput.click()} title={$t('action_take_photo')}>
           {#if uploading}
             <div class="thumb-loading"><div class="spinner-sm"></div></div>
           {:else if localImage}
@@ -194,7 +194,7 @@
                 </ul>
               {/if}
             </div>
-            <button class="scan-btn" on:click={() => showScanner = true} title="Barcode scannen" type="button">
+            <button class="scan-btn" on:click={() => showScanner = true} title={$t('action_scan_barcode')} type="button">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 9V5a2 2 0 012-2h4M3 15v4a2 2 0 002 2h4M21 9V5a2 2 0 00-2-2h-4M21 15v4a2 2 0 01-2 2h-4"/>
                 <line x1="7" y1="12" x2="7" y2="12.01"/>

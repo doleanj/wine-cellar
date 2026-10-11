@@ -1,4 +1,5 @@
 <script>
+  import { t } from '$lib/stores/i18n.js';
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import { BrowserMultiFormatReader } from '@zxing/browser';
   import Modal from './Modal.svelte';
@@ -26,11 +27,11 @@
       );
     } catch (e) {
       if (e?.name === 'NotAllowedError') {
-        errorMsg = 'Kamerazugriff verweigert. Bitte in den Einstellungen erlauben.';
+        errorMsg = $t('scanner_denied');
       } else if (e?.name === 'NotFoundError') {
-        errorMsg = 'Keine Kamera gefunden.';
+        errorMsg = $t('scanner_no_camera');
       } else {
-        errorMsg = 'Kamera konnte nicht gestartet werden. Bitte Barcode manuell eingeben.';
+        errorMsg = $t('scanner_failed');
       }
     }
   });
@@ -53,8 +54,8 @@
 <Modal variant="center" maxWidth="420px" labelledby="scanner-title" on:close={close}>
   <div class="scanner-box">
     <header class="scanner-header">
-      <span id="scanner-title">Barcode scannen</span>
-      <button class="close-btn" on:click={close} aria-label="Schließen">
+      <span id="scanner-title">{$t('action_scan_barcode')}</span>
+      <button class="close-btn" on:click={close} aria-label={$t('action_close')}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
@@ -75,7 +76,7 @@
           <div class="scan-line"></div>
         </div>
       </div>
-      <p class="hint">Barcode in den Rahmen halten</p>
+      <p class="hint">{$t('scanner_hint')}</p>
     {/if}
   </div>
 </Modal>

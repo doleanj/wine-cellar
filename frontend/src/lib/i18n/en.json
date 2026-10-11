@@ -311,5 +311,11 @@
   "detail_link": "Open link",
   "detail_region": "Region",
   "detail_region_enlarge": "Enlarge map",
-  "detail_region_close": "Close map"
+  "detail_region_close": "Close map",
+  "nav_regions": "Regions",
+  "regions_title": "Wine regions of France",
+  "regions_bottles": "bottle(s)",
+  "regions_none": "No bottle yet",
+  "regions_loading": "Loading regions…",
+  "regions_matched": "wines matched to a region"
 }

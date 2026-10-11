@@ -311,5 +311,11 @@
   "detail_link": "Link öffnen",
   "detail_region": "Region",
   "detail_region_enlarge": "Karte vergrößern",
-  "detail_region_close": "Karte schließen"
+  "detail_region_close": "Karte schließen",
+  "nav_regions": "Regionen",
+  "regions_title": "Weinregionen Frankreichs",
+  "regions_bottles": "Flasche(n)",
+  "regions_none": "Noch keine Flasche",
+  "regions_loading": "Regionen werden geladen…",
+  "regions_matched": "Weine einer Region zugeordnet"
 }

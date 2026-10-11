@@ -5,6 +5,7 @@
   import WineCard from '$lib/components/WineCard.svelte';
   import AddWineModal from '$lib/components/AddWineModal.svelte';
   import WineMap from '$lib/components/WineMap.svelte';
+  import RegionsPanel from '$lib/components/RegionsPanel.svelte';
   import LibraryManager from '$lib/components/LibraryManager.svelte';
   import ExportPanel from '$lib/components/ExportPanel.svelte';
   import BrandingPanel from '$lib/components/BrandingPanel.svelte';
@@ -33,6 +34,7 @@
   let libraryPrefill = null;
   let modalHideStock = false;
   let showMap = false;
+  let showRegions = false;
   let showLibrary = false;
   let showExport = false;
   let showBranding = false;
@@ -404,6 +406,12 @@ function handleLibraryView(e) {
             <line x1="16" y1="6" x2="16" y2="22"/>
           </svg>
         </button>
+        <button class="icon-btn" on:click={() => showRegions = true} title={$t('nav_regions')} aria-label={$t('nav_regions')}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+          </svg>
+        </button>
         {#if $isAdmin}
         <div class="icon-sep"></div>
         <button class="icon-btn" class:active={inventoryMode} on:click={() => { if (inventoryMode) { exitInventoryMode(); } else { inventoryMode = true; } }} title={$t('nav_inventory')} aria-label={$t('nav_inventory')}>
@@ -672,6 +680,11 @@ function handleLibraryView(e) {
   <!-- Map -->
   {#if showMap}
     <WineMap {wines} on:close={() => showMap = false} on:selectWine={(e) => { showMap = false; editingWine = e.detail; modalHideStock = true; showModal = true; }} />
+  {/if}
+
+  <!-- Regions -->
+  {#if showRegions}
+    <RegionsPanel {wines} on:close={() => showRegions = false} on:selectWine={(e) => { showRegions = false; selectedWine = e.detail; }} />
   {/if}
 
   <!-- Export/Import -->

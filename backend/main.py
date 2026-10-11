@@ -179,6 +179,7 @@ class WineLibrary(Base):
     profile_fruit = Column(Integer, nullable=True)         # 1 = léger … 5 = prononcé
     profile_personality = Column(Integer, nullable=True)   # 1 = léger … 5 = puissant
     sweetness = Column(String, default="")                 # "", sec, doux, moelleux
+    favorite = Column(Boolean, default=False)              # bookmark flag, shared by all users
     saved_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
     created_by = Column(String, default="")
@@ -295,6 +296,7 @@ def _migrate_library_columns():
         ("profile_fruit",       "INTEGER"),
         ("profile_personality", "INTEGER"),
         ("sweetness",           "TEXT DEFAULT ''"),
+        ("favorite",            "INTEGER DEFAULT 0"),
     ]
     with engine.connect() as conn:
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(wine_library)"))}
@@ -641,6 +643,7 @@ class WineCreate(BaseModel):
     profile_fruit: Optional[ProfileScore] = None
     profile_personality: Optional[ProfileScore] = None
     sweetness: WineSweetness = ""
+    favorite: bool = False
     by_glass: bool = False
     price_per_glass: Optional[float] = None
     location: str = ""
@@ -671,6 +674,7 @@ class WineUpdate(BaseModel):
     profile_fruit: Optional[ProfileScore] = None
     profile_personality: Optional[ProfileScore] = None
     sweetness: Optional[WineSweetness] = None
+    favorite: Optional[bool] = None
     by_glass: Optional[bool] = None
     price_per_glass: Optional[float] = None
     location: Optional[str] = None
@@ -702,6 +706,7 @@ class WineResponse(BaseModel):
     profile_fruit: Optional[int] = None
     profile_personality: Optional[int] = None
     sweetness: str = ""
+    favorite: bool = False
     by_glass: bool
     price_per_glass: Optional[float]
     location: str
@@ -1143,12 +1148,14 @@ def delete_custom_field(field_id: int, db: Session = Depends(get_db), _=Depends(
 # ── Wine CRUD (unified library) ───────────────────────────────────────────────
 
 @app.get("/wines", response_model=List[WineResponse])
-def get_wines(db: Session = Depends(get_db), _=Depends(require_login_or_kiosk)):
+def get_wines(favorite: Optional[bool] = Query(None), db: Session = Depends(get_db), _=Depends(require_login_or_kiosk)):
     settings = db.get(AppSettings, 1)
     show_zero = settings and settings.show_zero_quantity_in_dashboard
     query = db.query(WineLibrary)
     if not show_zero:
         query = query.filter(WineLibrary.quantity > 0)
+    if favorite is not None:
+        query = query.filter(WineLibrary.favorite == favorite)
     wines = query.order_by(WineLibrary.saved_at.desc()).all()
     cv_map = _load_cvs(db, [w.id for w in wines])
     return [_wine_to_dict(w, cv_map.get(w.id)) for w in wines]
@@ -1447,7 +1454,7 @@ _EXPORT_FIELDS = [
     'name', 'producer', 'vintage', 'type', 'grape', 'region', 'country',
     'location', 'quantity', 'price', 'alcohol', 'rating', 'body', 'acidity',
     'pairings', 'description', 'notes', 'barcode', 'image_url', 'wineapi_id',
-    'url', 'profile_fruit', 'profile_personality', 'sweetness',
+    'url', 'profile_fruit', 'profile_personality', 'sweetness', 'favorite',
 ]
 
 
@@ -1520,6 +1527,7 @@ async def import_wines(file: UploadFile = File(...), db: Session = Depends(get_d
             profile_fruit=_score(row.get('profile_fruit')),
             profile_personality=_score(row.get('profile_personality')),
             sweetness=row.get('sweetness') if row.get('sweetness') in ('sec', 'doux', 'moelleux') else '',
+            favorite=str(row.get('favorite', '')).strip().lower() in ('1', 'true', 'yes'),
         )
 
     fname = (file.filename or '').lower()

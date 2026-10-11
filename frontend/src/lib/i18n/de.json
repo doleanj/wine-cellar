@@ -317,5 +317,9 @@
   "regions_bottles": "Flasche(n)",
   "regions_none": "Noch keine Flasche",
   "regions_loading": "Regionen werden geladen…",
-  "regions_matched": "Weine einer Region zugeordnet"
+  "regions_matched": "Weine einer Region zugeordnet",
+  "filter_favorites": "Favoriten",
+  "fav_add": "Zu Favoriten hinzufügen",
+  "fav_remove": "Aus Favoriten entfernen",
+  "fav_flag": "Favorit"
 }

@@ -216,7 +216,20 @@
         <path d="M9 6V4h6v2"/>
       </svg>
     </button>
+    <button class="btn-icon btn-fav" class:fav-on={wine.favorite} aria-pressed={!!wine.favorite}
+      title={wine.favorite ? $t('fav_remove') : $t('fav_add')} aria-label={wine.favorite ? $t('fav_remove') : $t('fav_add')}
+      on:click|stopPropagation={() => dispatch('favorite', wine)}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill={wine.favorite ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+      </svg>
+    </button>
   </div>
+  {:else if wine.favorite}
+  <span class="fav-flag" title={$t('fav_remove')} role="img" aria-label={$t('fav_flag')}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+    </svg>
+  </span>
   {/if}
 </article>
 
@@ -280,9 +293,6 @@
     color: var(--text-muted);
     font-weight: 500;
     margin-top: 2px;
-  }
-  .card:hover .card-actions {
-    opacity: 1;
   }
 
   .card-image {
@@ -436,10 +446,23 @@
     position: absolute;
     top: 8px;
     left: 8px;
-    display: flex;
+    display: grid;
+    grid-template-columns: 30px 30px;
     gap: 4px;
-    opacity: 0;
-    transition: opacity 0.2s;
+  }
+  .fav-flag {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
   }
   .btn-icon {
     width: 30px;
@@ -452,8 +475,11 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-    transition: color 0.15s, background 0.15s;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.15s, background 0.15s;
   }
+  .card:hover .btn-icon, .btn-icon:focus-visible, .btn-icon.fav-on { opacity: 1; }
+  .btn-fav.fav-on { color: var(--primary); }
   .btn-icon:hover { color: var(--primary); background: white; }
   .btn-icon.danger:hover { color: var(--danger); }
 
@@ -496,7 +522,7 @@
   .inv-qty.zero { color: var(--text-muted); }
 
   @media (hover: none) {
-    .card-actions { opacity: 1; }
+    .btn-icon { opacity: 1; }
   }
 
   /* ── Thumb view ─────────────────────────────────────────── */
@@ -556,8 +582,10 @@
   }
   .card.view-list .card-actions {
     position: static;
-    opacity: 1;
+    display: flex;
     flex-shrink: 0;
     margin-right: 10px;
   }
+  .card.view-list .btn-icon { opacity: 1; }
+  .card.view-list .fav-flag { position: static; flex-shrink: 0; margin-right: 10px; }
 </style>

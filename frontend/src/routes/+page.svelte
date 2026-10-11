@@ -85,6 +85,7 @@
   const qtyTimers = {};
 
   let filterType = 'all';
+  let filterFav = false;
   let searchQuery = '';
   let sortBy = 'date';
   let viewMode = (typeof localStorage !== 'undefined' && localStorage.getItem('kellerlog_view')) || 'poster';
@@ -102,6 +103,7 @@
 
   $: filteredWines = wines
     .filter(w => filterType === 'all' || w.type === filterType)
+    .filter(w => !filterFav || w.favorite)
     .filter(w => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
@@ -181,6 +183,23 @@
       showToast($t('toast_deleted'));
     } catch (e) {
       handleApiError(e);
+    }
+  }
+
+  // Heart toggle (card and detail): optimistic, rolled back if the API call fails
+  async function handleFavorite(e) {
+    const wine = e.detail;
+    const next = !wine.favorite;
+    const apply = v => {
+      wines = wines.map(w => (w.id === wine.id ? { ...w, favorite: v } : w));
+      if (selectedWine && selectedWine.id === wine.id) selectedWine = { ...selectedWine, favorite: v };
+    };
+    apply(next);
+    try {
+      await updateWine(wine.id, { favorite: next });
+    } catch (err) {
+      apply(!next);
+      handleApiError(err);
     }
   }
 
@@ -534,6 +553,12 @@ function handleLibraryView(e) {
             on:click={() => filterType = f.value}
           >{f.label}</button>
         {/each}
+        <button class="tab fav-tab" class:active={filterFav} aria-pressed={filterFav} on:click={() => filterFav = !filterFav}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={filterFav ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+          </svg>
+          {$t('filter_favorites')}
+        </button>
       </div>
 
       <div class="control-right">
@@ -613,7 +638,7 @@ function handleLibraryView(e) {
       <p class="result-count">{filteredWines.length} {filteredWines.length !== 1 ? $t('count_plural') : $t('count_singular')}</p>
       <div class="wine-grid" class:view-thumb={viewMode === 'thumb'} class:view-list={viewMode === 'list'}>
         {#each filteredWines as wine (wine.id)}
-          <WineCard {wine} {inventoryMode} view={viewMode} readonly={!$isAdmin || inventoryMode} showDrinkWindow={$branding.showDrinkWindow} {drinkRules} selectable={selectionMode} selected={selectedIds.has(wine.id)} on:toggle={(e) => toggleSelection(e.detail)} on:select={(e) => selectedWine = e.detail} on:edit={handleEdit} on:delete={handleDelete} on:quantityChange={handleQuantityChange} />
+          <WineCard {wine} {inventoryMode} view={viewMode} readonly={!$isAdmin || inventoryMode} showDrinkWindow={$branding.showDrinkWindow} {drinkRules} selectable={selectionMode} selected={selectedIds.has(wine.id)} on:toggle={(e) => toggleSelection(e.detail)} on:select={(e) => selectedWine = e.detail} on:edit={handleEdit} on:favorite={handleFavorite} on:delete={handleDelete} on:quantityChange={handleQuantityChange} />
         {/each}
       </div>
     {/if}
@@ -726,6 +751,7 @@ function handleLibraryView(e) {
   {#if selectedWine}
     <WineDetail wine={selectedWine} editable={true} {customFields}
       on:close={() => selectedWine = null}
+      on:favorite={handleFavorite}
       on:edit={(e) => { selectedWine = null; editingWine = e.detail; showModal = true; }}
     />
   {/if}
@@ -1213,6 +1239,7 @@ function handleLibraryView(e) {
     transition: all 0.15s;
   }
   .tab:hover { border-color: var(--primary); color: var(--primary); }
+  .fav-tab { display: inline-flex; align-items: center; gap: 5px; }
   .tab.active {
     background: var(--primary);
     border-color: var(--primary);

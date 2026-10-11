@@ -704,7 +704,7 @@ function handleLibraryView(e) {
 
   <!-- Regions -->
   {#if showRegions}
-    <RegionsPanel {wines} on:close={() => showRegions = false} on:selectWine={(e) => { showRegions = false; selectedWine = e.detail; }} />
+    <RegionsPanel {wines} on:close={() => showRegions = false} on:selectWine={(e) => { selectedWine = e.detail; }} />
   {/if}
 
   <!-- Export/Import -->

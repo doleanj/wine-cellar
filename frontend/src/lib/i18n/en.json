@@ -468,5 +468,8 @@
   "action_fill_generic": "Fill from this page (basic data)",
   "info_sources_any": "Any other https product page",
   "info_sources_generic_note": "Best effort: only what the page states in standard product data. Check the comparison carefully.",
-  "fill_http_hint": "Only https links are supported."
+  "fill_http_hint": "Only https links are supported.",
+
+  "region_more": "More about this region",
+  "region_source": "Source"
 }

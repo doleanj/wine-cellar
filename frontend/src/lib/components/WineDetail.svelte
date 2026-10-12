@@ -197,6 +197,13 @@
               </button>
             {/if}
             {#if regionMatch.region.intro}<p class="region-intro">{regionMatch.region.intro}</p>{/if}
+            {#if regionMatch.region.extra}
+              <details class="region-extra">
+                <summary>{$t('region_more')}</summary>
+                <p class="region-intro" style="white-space: pre-line">{regionMatch.region.extra}</p>
+                {#if regionMatch.region.extra_source}<a class="elabel-line" href={regionMatch.region.extra_source} target="_blank" rel="noopener noreferrer">{$t('region_source')}</a>{/if}
+              </details>
+            {/if}
           </div>
         {/if}
 
@@ -549,4 +556,6 @@
   }
   .elabel { margin: 10px 0; }
   .elabel-line { margin: 3px 0; font-size: 13px; color: var(--text-muted); display: block; }
+  .region-extra { margin-top: 6px; font-size: 13px; }
+  .region-extra summary { cursor: pointer; color: var(--primary); font-weight: 600; }
 </style>

@@ -468,5 +468,8 @@
   "action_fill_generic": "Aus dieser Seite ausfüllen (Basisdaten)",
   "info_sources_any": "Jede andere https-Produktseite",
   "info_sources_generic_note": "Nach bestem Wissen: nur was die Seite in Standard-Produktdaten angibt. Den Vergleich bitte genau prüfen.",
-  "fill_http_hint": "Nur https-Links werden unterstützt."
+  "fill_http_hint": "Nur https-Links werden unterstützt.",
+
+  "region_more": "Mehr über diese Region",
+  "region_source": "Quelle"
 }

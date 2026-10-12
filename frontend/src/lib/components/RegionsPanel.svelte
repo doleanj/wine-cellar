@@ -65,6 +65,13 @@
             </button>
           {/if}
           {#if r.intro}<p class="intro">{r.intro}</p>{/if}
+          {#if r.extra}
+            <details class="extra">
+              <summary>{$t('region_more')}</summary>
+              <p class="intro" style="white-space: pre-line">{r.extra}</p>
+              {#if r.extra_source}<a href={r.extra_source} target="_blank" rel="noopener noreferrer">{$t('region_source')}</a>{/if}
+            </details>
+          {/if}
 
           {#if r.appellations.length}
             <div class="apps">
@@ -138,4 +145,7 @@
 
   .overlay { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.8); border: none; width: 100%; cursor: zoom-out; }
   .overlay img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+  .extra { font-size: 13px; }
+  .extra summary { cursor: pointer; color: var(--primary); font-weight: 600; }
+  .extra a { font-size: 12px; color: var(--text-muted); }
 </style>

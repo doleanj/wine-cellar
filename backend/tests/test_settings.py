@@ -49,3 +49,28 @@ def test_partial_update_preserves_other_fields(client, admin_headers):
     r = client.put("/settings", json={"dark_mode": True}, headers=admin_headers)
     assert r.json()["app_title"] == "KellerTest"
     assert r.json()["dark_mode"] is True
+
+
+def test_old_kellerlog_title_is_renamed_but_custom_titles_are_kept():
+    import main
+    from sqlalchemy import text
+
+    def title():
+        with main.engine.connect() as c:
+            return c.execute(text("SELECT app_title FROM app_settings WHERE id = 1")).scalar()
+
+    with main.engine.connect() as c:
+        c.execute(text("INSERT OR IGNORE INTO app_settings (id) VALUES (1)"))
+        before = title()
+        c.execute(text("UPDATE app_settings SET app_title = 'KellerLog' WHERE id = 1"))
+        c.commit()
+    main._migrate_settings()
+    assert title() == "Wine Cellar"
+    with main.engine.connect() as c:
+        c.execute(text("UPDATE app_settings SET app_title = 'My Cellar' WHERE id = 1"))
+        c.commit()
+    main._migrate_settings()
+    assert title() == "My Cellar"
+    with main.engine.connect() as c:
+        c.execute(text("UPDATE app_settings SET app_title = :t WHERE id = 1"), {"t": before or "Wine Cellar"})
+        c.commit()

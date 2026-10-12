@@ -35,3 +35,12 @@ def test_update_region_rejects_foreign_image_url(client, admin_headers):
 
 def test_update_unknown_region(client, admin_headers):
     assert client.put("/regions/atlantis", headers=admin_headers, json={"intro": "x"}).status_code == 404
+
+
+def test_region_extra_text_roundtrip(client, admin_headers):
+    r = client.put("/regions/alsace", headers=admin_headers, json={"extra": "Longer text.", "extra_source": "https://example.test/x"})
+    assert r.status_code == 200 and r.json()["extra"] == "Longer text." and r.json()["extra_source"] == "https://example.test/x"
+    got = [x for x in client.get("/regions", headers=admin_headers).json() if x["key"] == "alsace"][0]
+    assert got["extra"] == "Longer text."
+    # other fields untouched by a partial update
+    assert got["intro"] == client.put("/regions/alsace", headers=admin_headers, json={"extra": ""}).json()["intro"]

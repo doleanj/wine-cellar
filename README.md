@@ -23,6 +23,9 @@ A self-hosted wine cellar management app. Track your collection, scan barcodes, 
 - **Fill from link, any other shop (basic data):** for every other https product page the generic reader takes what the page states in standard product data (JSON-LD `Product`, then OpenGraph tags): name, brand, description, photo, price, EAN, plus a guessed vintage, alcohol and colour. Safety: https on port 443 only, public hosts only (every redirect is re-checked), HTML only, 4 MB cap, one request per click.
 - **Fill from link, e.leclerc details:** paste an `https://www.e.leclerc/fp/...` product link in the URL field and press "Fill from link": the backend reads that one page (`POST /fill-from-url`, only that host, tracking parameters stripped) and the form shows a preview with a checkbox per field (name, grape, vintage, region and appellation, alcohol, volume, pairings, fruit and personality scales, "potentiel de garde", serving temperature, tasting notes, price, EAN and photo). Nothing is stored from the page except what you confirm. New wine fields: `keep_until_years` (overrides the drink-window rule's end year), `serving_temp`, `purchase_date`, `tasting`. Personal use, one request per action; retailer texts are never part of this repository.
 
+- **Longer region texts:** each region can carry an extra text and its source link (`extra`, `extra_source` on `PUT /regions/{key}`), shown under "More about this region". `scripts/fetch_leclerc_region_texts.py` reads the region paragraph e.leclerc shows on its wine pages (about 20 polite requests, texts written outside the repository) and `scripts/load_region_extra.py` uploads them. Leclerc's Savoie/Jura pages show the Alsace paragraph, so that region is skipped.
+- **Title migration:** an app title that is still exactly `KellerLog` (the old default) is renamed to `Wine Cellar` at startup; custom titles are never touched.
+
 ## Screenshots
 
 | Collection | Wine Details | Kiosk |

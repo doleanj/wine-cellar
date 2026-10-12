@@ -299,6 +299,8 @@ class Region(Base):
     intro = Column(String, default="")
     appellations = Column(String, default="[]")  # JSON list of appellation names
     image_url = Column(String, default="")
+    extra = Column(String, default="")          # longer region text (e.g. from a retailer page), shown below the intro
+    extra_source = Column(String, default="")   # where that text came from
     sort_order = Column(Integer, default=0)
 
 
@@ -317,6 +319,17 @@ def _seed_regions():
         db.commit()
 
 _seed_regions()
+
+
+def _migrate_regions():
+    with engine.connect() as conn:
+        existing = {row[1] for row in conn.execute(text("PRAGMA table_info(regions)"))}
+        for col in ("extra", "extra_source"):
+            if col not in existing:
+                conn.execute(text(f"ALTER TABLE regions ADD COLUMN {col} TEXT DEFAULT ''"))
+        conn.commit()
+
+_migrate_regions()
 
 
 def _migrate_library_columns():
@@ -371,6 +384,8 @@ def _migrate_settings():
         for col_name, col_def in new_cols:
             if col_name not in existing:
                 conn.execute(text(f"ALTER TABLE app_settings ADD COLUMN {col_name} {col_def}"))
+        # the project was renamed from KellerLog: fix the old default title, never a title the user chose
+        conn.execute(text("UPDATE app_settings SET app_title = 'Wine Cellar' WHERE app_title = 'KellerLog'"))
         conn.commit()
 
 _migrate_settings()
@@ -1189,6 +1204,8 @@ class RegionResponse(BaseModel):
     intro: str = ""
     appellations: List[str] = []
     image_url: str = ""
+    extra: str = ""
+    extra_source: str = ""
 
 
 class RegionUpdate(BaseModel):
@@ -1196,6 +1213,8 @@ class RegionUpdate(BaseModel):
     intro: Optional[str] = None
     appellations: Optional[List[str]] = None
     image_url: Optional[str] = None
+    extra: Optional[str] = None
+    extra_source: Optional[str] = None
 
     @field_validator("image_url")
     @classmethod
@@ -1211,7 +1230,8 @@ def _region_to_response(r: Region) -> RegionResponse:
         apps = json.loads(r.appellations or "[]")
     except json.JSONDecodeError:
         apps = []
-    return RegionResponse(key=r.key, name=r.name, intro=r.intro or "", appellations=apps, image_url=r.image_url or "")
+    return RegionResponse(key=r.key, name=r.name, intro=r.intro or "", appellations=apps, image_url=r.image_url or "",
+                          extra=r.extra or "", extra_source=r.extra_source or "")
 
 
 @app.get("/regions", response_model=List[RegionResponse])
@@ -1232,6 +1252,10 @@ def update_region(key: str, data: RegionUpdate, db: Session = Depends(get_db), _
         r.appellations = json.dumps([a.strip() for a in data.appellations if a.strip()], ensure_ascii=False)
     if data.image_url is not None:
         r.image_url = data.image_url
+    if data.extra is not None:
+        r.extra = data.extra
+    if data.extra_source is not None:
+        r.extra_source = data.extra_source
     db.commit()
     notify_clients()
     return _region_to_response(r)

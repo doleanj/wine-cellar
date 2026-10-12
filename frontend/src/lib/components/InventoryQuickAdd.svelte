@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { uploadImage, lookupBarcode, searchLibrary } from '$lib/api.js';
+  import { uploadImage, lookupBarcode, searchLibrary, resolveElabel } from '$lib/api.js';
+  import { isElabelUrl } from '$lib/elabel.js';
   import { t } from '$lib/stores/i18n.js';
   import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
   import Modal from './Modal.svelte';
@@ -23,6 +24,8 @@
   let uploadError = false;
   let photoInput;
   let showScanner = false;
+  let elabelBusy = false;
+  let elabelFailed = false;
 
   // Library autocomplete
   let suggestions = [];
@@ -90,9 +93,26 @@
     }
   }
 
+  // E-label QR: fill the sheet from the resolved fields (the link itself is kept on the wine, not as barcode).
+  async function handleElabel(url) {
+    elabelBusy = true; elabelFailed = false;
+    try {
+      const res = await resolveElabel(url);
+      const f = Object.fromEntries(Object.entries(res.fields).filter(([, v]) => v !== null && v !== ''));
+      selectedEntry = { type: 'red', quantity: 0, ...f };
+      localName     = f.name     || localName;
+      localProducer = f.producer || localProducer;
+      localVintage  = f.vintage  || localVintage;
+      localType     = f.type     || localType;
+    } catch {
+      elabelFailed = true;
+    } finally { elabelBusy = false; }
+  }
+
   async function handleScan(e) {
     showScanner = false;
     const barcode = e.detail;
+    if (isElabelUrl(barcode)) { await handleElabel(barcode.trim()); return; }
     localBarcode = barcode;
     try {
       const result = await lookupBarcode(barcode);
@@ -208,6 +228,9 @@
           <span class="upload-err">{$t('inv_upload_error')}</span>
         {:else if localBarcode && isNew}
           <span class="barcode-hint">Barcode: {localBarcode}</span>
+        {/if}
+        {#if elabelBusy}<span class="barcode-hint">{$t('elabel_loading')}</span>{/if}
+        {#if elabelFailed}<span class="barcode-hint">{$t('elabel_unavailable')}</span>
         {:else if !isNew}
           <span class="stock-info">{$t('inv_stock_info')}: {wine.quantity} {$t('inv_bottles')}</span>
         {:else}

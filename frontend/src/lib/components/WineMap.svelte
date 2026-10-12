@@ -3,7 +3,7 @@
   import Modal from './Modal.svelte';
   import 'leaflet/dist/leaflet.css';
   import { t } from '$lib/stores/i18n.js';
-  import { loadGeo, groupWinesByGeo } from '$lib/geo.js';
+  import { loadGeo, groupWinesByGeo, featureContains, featureBBox, featureArea } from '$lib/geo.js';
   import { loadRegions } from '$lib/regions.js';
 
   export let wines = [];
@@ -161,7 +161,7 @@
     });
   }
 
-  function buildPopup(label, list) {
+  function popupSection(label, list) {
     const rows = list.map(w =>
       `<li data-wine-id="${esc(w.id)}" style="padding:6px 0;border-top:1px solid #f0e8ed;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;cursor:pointer;border-radius:4px" onmouseover="this.style.background='#fdf5f8'" onmouseout="this.style.background=''">
         <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#3d0d1c;font-weight:600">
@@ -170,10 +170,25 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7B1D3F" stroke-width="2.5" style="flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
       </li>`
     ).join('');
-    return `<div style="min-width:200px;max-width:280px">
-      <div style="font-size:15px;font-weight:700;color:#7B1D3F;margin-bottom:8px">${esc(label)}</div>
-      <ul style="margin:0;padding:0;list-style:none">${rows}</ul>
-    </div>`;
+    return `<div style="font-size:15px;font-weight:700;color:#7B1D3F;margin:8px 0">${esc(label)}</div>
+      <ul style="margin:0;padding:0;list-style:none">${rows}</ul>`;
+  }
+
+  function buildPopup(label, list) {
+    return `<div style="min-width:200px;max-width:280px">${popupSection(label, list)}</div>`;
+  }
+
+  // One popup for every zone under a click: most specific first, a wine is listed only once.
+  function buildZonesPopup(hits) {
+    const seen = new Set();
+    let html = '';
+    for (const h of hits) {
+      const list = h.info.wines.filter(w => !seen.has(w.id));
+      if (!list.length) continue;
+      list.forEach(w => seen.add(w.id));
+      html += popupSection(h.strong ? h.f.properties.name : h.info.label, list);
+    }
+    return `<div style="min-width:220px;max-width:300px;max-height:320px;overflow:auto">${html}</div>`;
   }
 
   onMount(async () => {
@@ -233,14 +248,30 @@
     const geoLayer = L.layerGroup();
     Promise.all([loadGeo(), loadRegions()]).then(([features, regionList]) => {
       const shapes = [];
+      const entries = [];
       for (const [f, info] of groupWinesByGeo(wines, features, regionList)) {
-        const strong = info.level === 'appellation';
-        shapes.push(L.geoJSON(f));
-        L.geoJSON(f, {
-          style: { color: '#7B1D3F', weight: strong ? 2 : 1, fillColor: '#7B1D3F', fillOpacity: strong ? 0.35 : 0.1 },
-        })
-          .bindPopup(buildPopup(strong ? f.properties.name : info.label, info.wines), { maxWidth: 300 })
-          .addTo(geoLayer);
+        entries.push({ f, info, strong: info.level === 'appellation', bbox: featureBBox(f), area: featureArea(f) });
+      }
+      // draw order: region-level (light) first, then appellations; big zones before small ones so nothing is buried
+      entries.sort((a, b) => (a.strong - b.strong) || (b.area - a.area));
+
+      function openZonesAt(latlng) {
+        const hits = entries
+          .filter(e => latlng.lng >= e.bbox[0] && latlng.lng <= e.bbox[2] && latlng.lat >= e.bbox[1] && latlng.lat <= e.bbox[3]
+                       && featureContains(e.f, latlng.lng, latlng.lat))
+          .sort((a, b) => (b.strong - a.strong) || (a.area - b.area));   // most specific first
+        if (!hits.length) return;
+        L.popup({ maxWidth: 320 }).setLatLng(latlng).setContent(buildZonesPopup(hits)).openOn(map);
+      }
+
+      for (const e of entries) {
+        const base = { color: '#7B1D3F', weight: e.strong ? 2 : 1, fillColor: '#7B1D3F', fillOpacity: e.strong ? 0.35 : 0.1 };
+        const layer = L.geoJSON(e.f, { style: base });
+        layer.on('click', ev => { L.DomEvent.stopPropagation(ev); openZonesAt(ev.latlng); });
+        layer.on('mouseover', () => layer.setStyle({ weight: base.weight + 1, fillOpacity: base.fillOpacity + 0.15 }));
+        layer.on('mouseout', () => layer.setStyle(base));
+        shapes.push(layer);
+        layer.addTo(geoLayer);
       }
       // no country marker to centre on: fit the map to the polygons instead
       if (shapes.length && countryBounds.length === 0) {
@@ -287,6 +318,7 @@
           map.fitBounds(countryBounds, { padding: [40, 40], maxZoom: 6 });
         }
         map.invalidateSize();
+        setTimeout(updateLayers, 900);   // after the animated zoom, so the right layers (countries vs zones) are shown
       }, 100);
     } else {
       setTimeout(() => map.invalidateSize(), 100);

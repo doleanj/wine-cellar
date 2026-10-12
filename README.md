@@ -17,6 +17,8 @@ A self-hosted wine cellar management app. Track your collection, scan barcodes, 
 
 - **Database backups:** a consistent SQLite copy (`<data>/backups/wines-<date>-<reason>.db`) is made before every app start (at most once an hour), then daily; the newest 14 of each kind are kept (`BACKUP_KEEP`, `BACKUPS_DIR`). List, "Back up now" and download are in the Backup & Import panel (`GET/POST /backups`, `GET /backups/{name}`). Photos live in the same data folder; take an off-NAS copy of the whole folder (Hyper Backup) for disk failures.
 
+- **EU e-label (QR scan):** scanning the QR code on a bottle that carries a ScanTrust e-label (`*.st4.ch` / `elabel.scantrust.com` link) fills the form from the label data: name, grape, vintage, alcohol, colour, sweetness, description, ingredients, nutrition per 100 ml and bottler. The add form shows a preview with one checkbox per field; nothing is overwritten silently. The backend resolves the link itself (`POST /elabel/resolve`, allow-listed hosts only, one request per scan). The EAN barcode alone cannot be mapped to an e-label; the QR link is the identifier.
+
 ## Screenshots
 
 | Collection | Wine Details | Kiosk |

@@ -1,0 +1,639 @@
+{
+ "company": {
+  "id": 28287,
+  "name": "Grands Vins Selection"
+ },
+ "code": {
+  "product": {
+   "id": 762474,
+   "name": "BOURGOGNE GAMAY NOIR",
+   "image": "",
+   "description": "",
+   "sku": "11395 - 2024",
+   "client_url": "",
+   "stc_data": {},
+   "translations_url": "https://api.scantrust.com/api/v2/consumer/get-translations/?group=product&oid=762474"
+  },
+  "brand": {
+   "id": 31132,
+   "name": "GVS",
+   "description": "GVS",
+   "image": null,
+   "translations_url": "https://api.scantrust.com/api/v2/consumer/get-translations/?group=brand&oid=31132"
+  },
+  "qrcode": {
+   "message": "orxPNvptCWaT",
+   "creation_date": "2025-12-01T11:11:56.999231Z",
+   "serial_number": "",
+   "is_blacklisted": false,
+   "activation_status": "active",
+   "blacklist_reason": "none",
+   "is_consumed": false,
+   "is_sid": true
+  },
+  "scm_data": [
+   {
+    "name": "Upload Batch",
+    "key": "scantrust_upload_batch",
+    "position": 0,
+    "type": "text",
+    "value": "",
+    "value_display": null
+   },
+   {
+    "name": "GTIN",
+    "key": "gs1_gtin",
+    "position": 0,
+    "type": "text",
+    "value": "",
+    "value_display": null
+   },
+   {
+    "name": "LOT",
+    "key": "gs1_lot",
+    "position": 0,
+    "type": "text",
+    "value": "",
+    "value_display": null
+   },
+   {
+    "name": "CPV",
+    "key": "gs1_cpv",
+    "position": 0,
+    "type": "text",
+    "value": "",
+    "value_display": null
+   }
+  ],
+  "scan_count": 35
+ },
+ "campaign": {
+  "id": 32029,
+  "name": "Default Campaign",
+  "options": {
+   "is_enabled": true,
+   "serial_number_lookup_enabled": false,
+   "complaints": {
+    "is_enabled": false,
+    "to_email": ""
+   },
+   "wechat": {
+    "is_enabled": false,
+    "channel_redirect": {
+     "is_enabled": false,
+     "channel_id": "",
+     "landing_page": "https://www.scantrust.com/result-pages/wechat-redirect.html"
+    }
+   },
+   "mark_consumed": false,
+   "ga_key": "",
+   "stc_config": {},
+   "stc_mode": "elabel"
+  }
+ },
+ "elabel": {
+  "editor": {
+   "type": "wine",
+   "theme": {
+    "primary": "#15BBF0",
+    "background": "#FFFFFF",
+    "alcoholColor": "#890022"
+   },
+   "footer": {
+    "privacy": "",
+    "first_line": "",
+    "second_line": "",
+    "privacy_description": {}
+   },
+   "header": {
+    "logo": "",
+    "title": ""
+   },
+   "version": 1,
+   "sections": [
+    {
+     "key": "product-infos"
+    },
+    {
+     "key": "geographical-indications"
+    },
+    {
+     "key": "ingredients"
+    },
+    {
+     "key": "serving-infos"
+    },
+    {
+     "key": "nutrition"
+    },
+    {
+     "key": "responsible-consumption"
+    },
+    {
+     "key": "sustainability"
+    },
+    {
+     "key": "business-operator"
+    },
+    {
+     "key": "brand-infos"
+    },
+    {
+     "key": "impressum"
+    }
+   ],
+   "impressum": {
+    "free_text": {
+     "default": ""
+    }
+   },
+   "nutrition": {
+    "table": [
+     {
+      "key": "energy",
+      "unit": "kJ",
+      "children": [
+       {
+        "key": null,
+        "unit": "kcal",
+        "per_100ml": 72,
+        "per_portion": null,
+        "less_operator": false
+       }
+      ],
+      "per_100ml": 303,
+      "per_portion": null,
+      "less_operator": false
+     },
+     {
+      "key": "fat",
+      "unit": "g",
+      "children": [
+       {
+        "key": "saturated_fat",
+        "unit": "g",
+        "per_100ml": 0,
+        "per_portion": null,
+        "less_operator": false
+       }
+      ],
+      "per_100ml": 0,
+      "per_portion": null,
+      "less_operator": false
+     },
+     {
+      "key": "carbohydrate",
+      "unit": "g",
+      "children": [
+       {
+        "key": "sugar",
+        "unit": "g",
+        "per_100ml": 0.1,
+        "per_portion": null,
+        "less_operator": false
+       }
+      ],
+      "per_100ml": 0.8,
+      "per_portion": null,
+      "less_operator": false
+     },
+     {
+      "key": "protein",
+      "unit": "g",
+      "per_100ml": 0,
+      "per_portion": null,
+      "less_operator": false
+     },
+     {
+      "key": "salt",
+      "unit": "g",
+      "per_100ml": 0,
+      "per_portion": null,
+      "less_operator": false
+     }
+    ],
+    "is_hidden": false
+   },
+   "brand-infos": {
+    "image": "",
+    "links": [],
+    "text_color": "#FFFFFF",
+    "hide_learn_more_text": false,
+    "hide_links_for_countries": [
+     "REGULATED_COUNTRIES"
+    ]
+   },
+   "ingredients": {
+    "list": [
+     {
+      "category": "ingredient_category_main_ingredients",
+      "description": "ingredient_grapes",
+      "is_allergen": false,
+      "is_contained_display": false
+     },
+     {
+      "category": "ingredient_category_stabilising_agents",
+      "description": "ingredient_metatartaric_acid",
+      "is_allergen": false,
+      "is_contained_display": false
+     },
+     {
+      "category": "ingredient_category_preservative",
+      "description": "ingredient_sulphites",
+      "is_allergen": true,
+      "is_contained_display": false
+     },
+     {
+      "category": "ingredient_category_substances_for_enrichment",
+      "description": "ingredient_sucrose",
+      "is_allergen": false
+     }
+    ],
+    "free_text": {},
+    "use_free_form": false,
+    "allergens_icons": []
+   },
+   "product-infos": {
+    "type": "wine_type_wine",
+    "origin": [
+     "FR"
+    ],
+    "volumes": [
+     "750"
+    ],
+    "wine_colour": "wine_colour_red",
+    "product_name": {
+     "fr": "BOURGOGNE GAMAY 2024"
+    },
+    "vine_variety": "Gamay ",
+    "vintage_year": "2024",
+    "origin_prefix": "produced_in",
+    "alcohol_volume": "12.5",
+    "producing_year": "",
+    "wine_sweetness": "wine_sweetness_B_dry",
+    "sales_description": {
+     "fr": "Au nez, on trouve des notes gourmandes de petits fruits rouges frais, soulignées par une touche épicée. La bouche, souple et équilibrée, offre une belle fraîcheur et des tanins délicats, avec une finale fruitée et croquante.\nOn accordera ce Bourgogne Gamay avec raison sur des Charcuteries, une volaille rôtie ou encore une tarte aux tomates et fromage frais"
+    },
+    "traditional_terms": {},
+    "bottled_in_protected_atmosphere": "bottled_in_protected_atmosphere_0"
+   },
+   "serving-infos": {
+    "unit": {
+     "default": "ML"
+    },
+    "serving": {
+     "default": 100
+    },
+    "glass_icon": "",
+    "bottle_icon": ""
+   },
+   "sustainability": {
+    "custom_icons": [],
+    "organic_icons": [],
+    "organic_description": {},
+    "recyclability_icons": [],
+    "certifications_icons": [],
+    "italian_recyclability": {
+     "list": [],
+     "is_enabled": false
+    },
+    "spanish_recyclability": {
+     "list": [],
+     "is_enabled": false
+    },
+    "recyclability_description": {},
+    "certifications_description": {}
+   },
+   "default_country": "",
+   "default_language": "fr",
+   "business-operator": {
+    "produced_by": {
+     "default": ""
+    }
+   },
+   "reviewed_languages": [
+    "fr",
+    "bg",
+    "hr",
+    "cs",
+    "da",
+    "nl",
+    "en",
+    "et",
+    "fi",
+    "de",
+    "el",
+    "hu",
+    "ga",
+    "it",
+    "lv",
+    "lt",
+    "mt",
+    "no",
+    "pl",
+    "pt",
+    "ro",
+    "sk",
+    "sl",
+    "es",
+    "sv"
+   ],
+   "available_languages": [
+    "fr"
+   ],
+   "responsible-consumption": {
+    "icons": [
+     0,
+     1,
+     2
+    ],
+    "description": {},
+    "custom_icons": [],
+    "show_responsible_message": true,
+    "responsible_drinking_logo": true
+   },
+   "geographical-indications": {
+    "list": [
+     {
+      "icon": "",
+      "description": ""
+     }
+    ]
+   },
+   "enforce_language_per_country": false
+  },
+  "published": {
+   "type": "wine",
+   "theme": {
+    "primary": "#15BBF0",
+    "background": "#FFFFFF",
+    "alcoholColor": "#890022"
+   },
+   "footer": {
+    "privacy": "",
+    "first_line": "",
+    "second_line": "",
+    "privacy_description": {}
+   },
+   "header": {
+    "logo": "",
+    "title": ""
+   },
+   "version": 1,
+   "sections": [
+    {
+     "key": "product-infos"
+    },
+    {
+     "key": "geographical-indications"
+    },
+    {
+     "key": "ingredients"
+    },
+    {
+     "key": "serving-infos"
+    },
+    {
+     "key": "nutrition"
+    },
+    {
+     "key": "responsible-consumption"
+    },
+    {
+     "key": "sustainability"
+    },
+    {
+     "key": "business-operator"
+    },
+    {
+     "key": "brand-infos"
+    },
+    {
+     "key": "impressum"
+    }
+   ],
+   "impressum": {
+    "free_text": {
+     "default": ""
+    }
+   },
+   "nutrition": {
+    "table": [
+     {
+      "key": "energy",
+      "unit": "kJ",
+      "children": [
+       {
+        "key": null,
+        "unit": "kcal",
+        "per_100ml": 72,
+        "per_portion": null,
+        "less_operator": false
+       }
+      ],
+      "per_100ml": 303,
+      "per_portion": null,
+      "less_operator": false
+     },
+     {
+      "key": "fat",
+      "unit": "g",
+      "children": [
+       {
+        "key": "saturated_fat",
+        "unit": "g",
+        "per_100ml": 0,
+        "per_portion": null,
+        "less_operator": false
+       }
+      ],
+      "per_100ml": 0,
+      "per_portion": null,
+      "less_operator": false
+     },
+     {
+      "key": "carbohydrate",
+      "unit": "g",
+      "children": [
+       {
+        "key": "sugar",
+        "unit": "g",
+        "per_100ml": 0.1,
+        "per_portion": null,
+        "less_operator": false
+       }
+      ],
+      "per_100ml": 0.8,
+      "per_portion": null,
+      "less_operator": false
+     },
+     {
+      "key": "protein",
+      "unit": "g",
+      "per_100ml": 0,
+      "per_portion": null,
+      "less_operator": false
+     },
+     {
+      "key": "salt",
+      "unit": "g",
+      "per_100ml": 0,
+      "per_portion": null,
+      "less_operator": false
+     }
+    ],
+    "is_hidden": false
+   },
+   "brand-infos": {
+    "image": "",
+    "links": [],
+    "text_color": "#FFFFFF",
+    "hide_learn_more_text": false,
+    "hide_links_for_countries": [
+     "REGULATED_COUNTRIES"
+    ]
+   },
+   "ingredients": {
+    "list": [
+     {
+      "category": "ingredient_category_main_ingredients",
+      "description": "ingredient_grapes",
+      "is_allergen": false,
+      "is_contained_display": false
+     },
+     {
+      "category": "ingredient_category_stabilising_agents",
+      "description": "ingredient_metatartaric_acid",
+      "is_allergen": false,
+      "is_contained_display": false
+     },
+     {
+      "category": "ingredient_category_preservative",
+      "description": "ingredient_sulphites",
+      "is_allergen": true,
+      "is_contained_display": false
+     },
+     {
+      "category": "ingredient_category_substances_for_enrichment",
+      "description": "ingredient_sucrose",
+      "is_allergen": false
+     }
+    ],
+    "free_text": {},
+    "use_free_form": false,
+    "allergens_icons": []
+   },
+   "product-infos": {
+    "type": "wine_type_wine",
+    "origin": [
+     "FR"
+    ],
+    "volumes": [
+     "750"
+    ],
+    "wine_colour": "wine_colour_red",
+    "product_name": {
+     "fr": "BOURGOGNE GAMAY 2024"
+    },
+    "vine_variety": "Gamay ",
+    "vintage_year": "2024",
+    "origin_prefix": "produced_in",
+    "alcohol_volume": "12.5",
+    "producing_year": "",
+    "wine_sweetness": "wine_sweetness_B_dry",
+    "sales_description": {
+     "fr": "Au nez, on trouve des notes gourmandes de petits fruits rouges frais, soulignées par une touche épicée. La bouche, souple et équilibrée, offre une belle fraîcheur et des tanins délicats, avec une finale fruitée et croquante.\nOn accordera ce Bourgogne Gamay avec raison sur des Charcuteries, une volaille rôtie ou encore une tarte aux tomates et fromage frais"
+    },
+    "traditional_terms": {},
+    "bottled_in_protected_atmosphere": "bottled_in_protected_atmosphere_0"
+   },
+   "serving-infos": {
+    "unit": {
+     "default": "ML"
+    },
+    "serving": {
+     "default": 100
+    },
+    "glass_icon": "",
+    "bottle_icon": ""
+   },
+   "sustainability": {
+    "custom_icons": [],
+    "organic_icons": [],
+    "organic_description": {},
+    "recyclability_icons": [],
+    "certifications_icons": [],
+    "italian_recyclability": {
+     "list": [],
+     "is_enabled": false
+    },
+    "spanish_recyclability": {
+     "list": [],
+     "is_enabled": false
+    },
+    "recyclability_description": {},
+    "certifications_description": {}
+   },
+   "default_country": "",
+   "default_language": "fr",
+   "business-operator": {
+    "produced_by": {
+     "default": ""
+    }
+   },
+   "reviewed_languages": [
+    "fr",
+    "bg",
+    "hr",
+    "cs",
+    "da",
+    "nl",
+    "en",
+    "et",
+    "fi",
+    "de",
+    "el",
+    "hu",
+    "ga",
+    "it",
+    "lv",
+    "lt",
+    "mt",
+    "no",
+    "pl",
+    "pt",
+    "ro",
+    "sk",
+    "sl",
+    "es",
+    "sv"
+   ],
+   "available_languages": [
+    "fr"
+   ],
+   "responsible-consumption": {
+    "icons": [
+     0,
+     1,
+     2
+    ],
+    "description": {},
+    "custom_icons": [],
+    "show_responsible_message": true,
+    "responsible_drinking_logo": true
+   },
+   "geographical-indications": {
+    "list": [
+     {
+      "icon": "",
+      "description": ""
+     }
+    ]
+   },
+   "enforce_language_per_country": false
+  },
+  "updated_at": "2026-07-24T14:23:20.456542Z"
+ },
+ "dpp": null,
+ "stc_config": null
+}

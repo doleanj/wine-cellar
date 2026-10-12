@@ -143,6 +143,22 @@
           <p class="description">{wine.description}</p>
         {/if}
 
+        {#if wine.ingredients || wine.energy_kcal_100ml || wine.bottled_by || wine.elabel_url}
+          <div class="elabel">
+            <span class="prop-label">{$t('detail_elabel')}</span>
+            {#if wine.ingredients}
+              <p class="elabel-line">{$t('detail_ingredients')}: {wine.ingredients}{#if wine.sulphites} · {$t('detail_sulphites')}{/if}</p>
+            {/if}
+            {#if wine.energy_kcal_100ml || wine.sugar_g_100ml || wine.carbs_g_100ml}
+              <p class="elabel-line">{$t('detail_nutrition')}:
+                {#if wine.energy_kcal_100ml}{wine.energy_kcal_100ml} kcal{/if}{#if wine.carbs_g_100ml} · {wine.carbs_g_100ml} g {$t('elabel_f_carbs_g_100ml').split(' ')[0].toLowerCase()}{/if}{#if wine.sugar_g_100ml} · {wine.sugar_g_100ml} g {$t('elabel_f_sugar_g_100ml').split(' ')[0].toLowerCase()}{/if}
+              </p>
+            {/if}
+            {#if wine.bottled_by}<p class="elabel-line">{$t('detail_bottled_by')}: {wine.bottled_by}</p>{/if}
+            {#if wine.elabel_url}<a class="elabel-line" href={wine.elabel_url} target="_blank" rel="noopener noreferrer">{$t('detail_elabel_open')}</a>{/if}
+          </div>
+        {/if}
+
         {#if wine.profile_fruit || wine.profile_personality || wine.sweetness}
           <div class="profile">
             <TasteBadge fruit={wine.profile_fruit} personality={wine.profile_personality} size={88} />
@@ -522,4 +538,6 @@
       padding: 20px;
     }
   }
+  .elabel { margin: 10px 0; }
+  .elabel-line { margin: 3px 0; font-size: 13px; color: var(--text-muted); display: block; }
 </style>

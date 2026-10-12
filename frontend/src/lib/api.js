@@ -154,6 +154,16 @@ export async function lookupBarcode(barcode) {
   return r.json();
 }
 
+export async function resolveElabel(url) {
+  const r = await fetch(`${BASE}/elabel/resolve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ url }),
+  });
+  if (!r.ok) throw new Error('E-label unavailable');
+  return r.json();
+}
+
 export async function uploadImage(file) {
   const fd = new FormData();
   fd.append('file', file);

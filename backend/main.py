@@ -26,6 +26,7 @@ pillow_heif.register_heif_opener()
 from pydantic import AfterValidator, BaseModel, Field, field_validator
 from regions_seed import REGIONS_SEED
 import backups
+import elabel
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, text, func, or_
@@ -195,6 +196,15 @@ class WineLibrary(Base):
     profile_personality = Column(Integer, nullable=True)   # 1 = léger … 5 = puissant
     sweetness = Column(String, default="")                 # "", sec, doux, moelleux
     favorite = Column(Boolean, default=False)              # bookmark flag, shared by all users
+    # EU e-label data (from the bottle's QR code)
+    elabel_url = Column(String, default="")
+    ingredients = Column(String, default="")
+    sulphites = Column(Boolean, default=False)
+    energy_kcal_100ml = Column(Float, nullable=True)
+    sugar_g_100ml = Column(Float, nullable=True)
+    carbs_g_100ml = Column(Float, nullable=True)
+    bottled_by = Column(String, default="")
+    volume_ml = Column(Integer, nullable=True)
     saved_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
     created_by = Column(String, default="")
@@ -312,6 +322,14 @@ def _migrate_library_columns():
         ("profile_personality", "INTEGER"),
         ("sweetness",           "TEXT DEFAULT ''"),
         ("favorite",            "INTEGER DEFAULT 0"),
+        ("elabel_url",          "TEXT DEFAULT ''"),
+        ("ingredients",         "TEXT DEFAULT ''"),
+        ("sulphites",           "INTEGER DEFAULT 0"),
+        ("energy_kcal_100ml",   "REAL"),
+        ("sugar_g_100ml",       "REAL"),
+        ("carbs_g_100ml",       "REAL"),
+        ("bottled_by",          "TEXT DEFAULT ''"),
+        ("volume_ml",           "INTEGER"),
     ]
     with engine.connect() as conn:
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(wine_library)"))}
@@ -673,6 +691,14 @@ class WineCreate(BaseModel):
     profile_personality: Optional[ProfileScore] = None
     sweetness: WineSweetness = ""
     favorite: bool = False
+    elabel_url: str = ""
+    ingredients: str = ""
+    sulphites: bool = False
+    energy_kcal_100ml: Optional[float] = None
+    sugar_g_100ml: Optional[float] = None
+    carbs_g_100ml: Optional[float] = None
+    bottled_by: str = ""
+    volume_ml: Optional[int] = None
     by_glass: bool = False
     price_per_glass: Optional[float] = None
     location: str = ""
@@ -704,6 +730,14 @@ class WineUpdate(BaseModel):
     profile_personality: Optional[ProfileScore] = None
     sweetness: Optional[WineSweetness] = None
     favorite: Optional[bool] = None
+    elabel_url: Optional[str] = None
+    ingredients: Optional[str] = None
+    sulphites: Optional[bool] = None
+    energy_kcal_100ml: Optional[float] = None
+    sugar_g_100ml: Optional[float] = None
+    carbs_g_100ml: Optional[float] = None
+    bottled_by: Optional[str] = None
+    volume_ml: Optional[int] = None
     by_glass: Optional[bool] = None
     price_per_glass: Optional[float] = None
     location: Optional[str] = None
@@ -736,6 +770,14 @@ class WineResponse(BaseModel):
     profile_personality: Optional[int] = None
     sweetness: str = ""
     favorite: bool = False
+    elabel_url: str = ""
+    ingredients: str = ""
+    sulphites: bool = False
+    energy_kcal_100ml: Optional[float] = None
+    sugar_g_100ml: Optional[float] = None
+    carbs_g_100ml: Optional[float] = None
+    bottled_by: str = ""
+    volume_ml: Optional[int] = None
     by_glass: bool
     price_per_glass: Optional[float]
     location: str
@@ -1494,6 +1536,23 @@ async def upload_from_url(body: dict, _=Depends(require_auth)):
         raise HTTPException(status_code=502, detail="Bild konnte nicht geladen werden")
 
 
+@app.post("/elabel/resolve")
+@limiter.limit("20/minute")
+async def elabel_resolve(request: Request, body: dict, db: Session = Depends(get_db), _=Depends(require_login)):
+    """Resolve a scanned e-label QR link (ScanTrust) to wine fields. One call per explicit user scan."""
+    url = (body.get("url") or "").strip()
+    if not elabel.is_elabel_url(url):
+        raise HTTPException(status_code=400, detail="Kein unterstützter E-Label-Link")
+    local = db.query(WineLibrary).filter(WineLibrary.elabel_url == url).first()
+    try:
+        async with httpx.AsyncClient(timeout=15.0, headers={"User-Agent": "WineCellar/1.5"}) as client:
+            result = await elabel.resolve(url, client)
+    except (elabel.ElabelError, httpx.HTTPError, ValueError):
+        raise HTTPException(status_code=502, detail="E-Label nicht verfügbar")
+    result["existing_wine_id"] = local.id if local else None
+    return result
+
+
 @app.get("/lookup/{barcode}", response_model=Optional[LibraryLookupResponse])
 def lookup_barcode(barcode: str, db: Session = Depends(get_db), _=Depends(require_login)):
     lib = db.query(WineLibrary).filter(WineLibrary.barcode == barcode).first()
@@ -1508,6 +1567,8 @@ _EXPORT_FIELDS = [
     'location', 'quantity', 'price', 'alcohol', 'rating', 'body', 'acidity',
     'pairings', 'description', 'notes', 'barcode', 'image_url', 'wineapi_id',
     'url', 'profile_fruit', 'profile_personality', 'sweetness', 'favorite',
+    'elabel_url', 'ingredients', 'sulphites', 'energy_kcal_100ml', 'sugar_g_100ml',
+    'carbs_g_100ml', 'bottled_by', 'volume_ml',
 ]
 
 

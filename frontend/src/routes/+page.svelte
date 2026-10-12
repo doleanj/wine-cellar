@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { version } from '../../package.json';
-  import { getWines, createWine, updateWine, deleteWine, getStats, lookupBarcode, getDrinkRules, batchUpdateWines, getCustomFields, getMe, setMyLanguage, getToken } from '$lib/api.js';
+  import { getWines, createWine, updateWine, deleteWine, getStats, lookupBarcode, getDrinkRules, batchUpdateWines, getCustomFields, resolveElabel, getMe, setMyLanguage, getToken } from '$lib/api.js';
   import WineCard from '$lib/components/WineCard.svelte';
   import AddWineModal from '$lib/components/AddWineModal.svelte';
   import WineMap from '$lib/components/WineMap.svelte';
@@ -16,6 +16,7 @@
   import BatchEditPanel from '$lib/components/BatchEditPanel.svelte';
   import CustomFieldsPanel from '$lib/components/CustomFieldsPanel.svelte';
   import WineDetail from '$lib/components/WineDetail.svelte';
+  import { isElabelUrl } from '$lib/elabel.js';
   import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
   import InventoryQuickAdd from '$lib/components/InventoryQuickAdd.svelte';
   import { branding } from '$lib/stores/branding.js';
@@ -303,6 +304,20 @@ function handleLibraryView(e) {
   async function handleInventoryScan(e) {
     showInventoryScanner = false;
     const barcode = e.detail;
+    if (isElabelUrl(barcode)) {
+      const url = barcode.trim();
+      const known = wines.find(w => w.elabel_url === url);
+      if (known) { inventoryScanWine = known; inventoryScanIsNew = false; return; }
+      try {
+        const res = await resolveElabel(url);
+        const f = Object.fromEntries(Object.entries(res.fields).filter(([, v]) => v !== null && v !== ''));
+        inventoryScanWine = { type: 'red', quantity: 0, ...f, barcode: '' };
+      } catch {
+        inventoryScanWine = { name: '', barcode: url, type: 'red', quantity: 0 };
+      }
+      inventoryScanIsNew = true;
+      return;
+    }
     const existing = wines.find(w => w.barcode === barcode);
     if (existing) {
       inventoryScanWine = existing;

@@ -1,7 +1,8 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import Modal from './Modal.svelte';
-  import { lookupBarcode, uploadImage } from '$lib/api.js';
+  import { lookupBarcode, uploadImage, resolveElabel } from '$lib/api.js';
+  import { isElabelUrl, ELABEL_FIELDS, isFilled } from '$lib/elabel.js';
   import { t, lang } from '$lib/stores/i18n.js';
   import BarcodeScanner from './BarcodeScanner.svelte';
   import PairingPicker from './PairingPicker.svelte';
@@ -31,7 +32,9 @@
     rating: null, quantity: 1, notes: '', price: null,
     barcode: '', image_url: '', body: '', acidity: '',
     pairings: '', description: '', by_glass: false, price_per_glass: null,
-    location: '', url: '', profile_fruit: null, profile_personality: null, sweetness: ''
+    location: '', url: '', profile_fruit: null, profile_personality: null, sweetness: '',
+    elabel_url: '', ingredients: '', sulphites: false, energy_kcal_100ml: null,
+    sugar_g_100ml: null, carbs_g_100ml: null, bottled_by: '', volume_ml: null
   };
 
   function initForm() {
@@ -67,9 +70,35 @@
     { value: 'other',     emoji: '⚪', label: $t('type_other') },
   ];
 
+  // E-label preview: fields found for a scanned QR link, each applied only when ticked.
+  let elabel = null;       // { fields, description_lang, existing_wine_id, rows: [{key, value, on}] }
+  let elabelBusy = false;
+  let elabelError = false;
+
+  async function handleElabel(url) {
+    elabelBusy = true; elabelError = false; elabel = null;
+    try {
+      const res = await resolveElabel(url);
+      const rows = ELABEL_FIELDS.filter(k => isFilled(res.fields[k]))
+        .map(k => ({ key: k, value: res.fields[k], on: !isFilled(form[k]) }));
+      elabel = { ...res, rows };
+    } catch {
+      elabelError = true;
+      form = { ...form, barcode: url };
+    } finally { elabelBusy = false; }
+  }
+
+  function applyElabel() {
+    const upd = { elabel_url: elabel.fields.elabel_url };
+    for (const r of elabel.rows) if (r.on) upd[r.key] = r.value;
+    form = { ...form, ...upd };
+    elabel = null;
+  }
+
   async function handleScan(event) {
     showScanner = false;
     const barcode = event.detail;
+    if (isElabelUrl(barcode)) { await handleElabel(barcode.trim()); return; }
     form = { ...form, barcode };
     try {
       const result = await lookupBarcode(barcode);
@@ -254,6 +283,29 @@
                 </svg>
               </button>
             </div>
+
+            {#if elabelBusy}<p class="elabel-note">{$t('elabel_loading')}</p>{/if}
+            {#if elabelError}<p class="elabel-note elabel-err">{$t('elabel_unavailable')}</p>{/if}
+            {#if elabel}
+              <div class="elabel-box">
+                <strong>{$t('elabel_found')}</strong>
+                {#if elabel.existing_wine_id}<p class="elabel-note">{$t('elabel_existing')}</p>{/if}
+                {#each elabel.rows as r (r.key)}
+                  <label class="elabel-row">
+                    <input type="checkbox" bind:checked={r.on} />
+                    <span class="elabel-key">{$t('elabel_f_' + r.key)}</span>
+                    <span class="elabel-val">{typeof r.value === 'boolean' ? '✓' : r.value}</span>
+                  </label>
+                {/each}
+                {#if elabel.description_lang && elabel.description_lang !== $lang && elabel.rows.some(r => r.key === 'description')}
+                  <p class="elabel-note">{$t('elabel_lang_warn').replace('{lang}', elabel.description_lang)}</p>
+                {/if}
+                <div class="elabel-actions">
+                  <button type="button" class="btn-camera" on:click={applyElabel}>{$t('elabel_apply')}</button>
+                  <button type="button" class="btn-camera" on:click={() => elabel = null}>{$t('elabel_dismiss')}</button>
+                </div>
+              </div>
+            {/if}
 
             <!-- Bewertung -->
             <div class="panel-rating">
@@ -1029,4 +1081,12 @@
     border-radius: 8px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   }
+
+  .elabel-box { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin: 8px 0; background: var(--surface-2); display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+  .elabel-row { display: flex; gap: 8px; align-items: baseline; cursor: pointer; }
+  .elabel-key { color: var(--text-muted); min-width: 110px; flex-shrink: 0; }
+  .elabel-val { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+  .elabel-note { margin: 4px 0; font-size: 12px; color: var(--text-muted); }
+  .elabel-err { color: #b3261e; }
+  .elabel-actions { display: flex; gap: 8px; margin-top: 6px; }
 </style>

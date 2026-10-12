@@ -440,5 +440,17 @@
   "elabel_f_image_url": "Photo",
   "detail_keep_until": "Drink until",
   "detail_serving_temp": "Serve at",
-  "detail_purchase_date": "Purchased"
+  "detail_purchase_date": "Purchased",
+
+  "fill_found_link": "Product page found – choose what to take over",
+  "preview_field": "Field",
+  "preview_current": "Current",
+  "preview_new": "New",
+  "preview_same": "same",
+  "preview_apply": "Apply selected",
+  "preview_cancel": "Cancel",
+  "preview_select": "Select",
+  "preview_all": "all",
+  "preview_none": "none",
+  "preview_only_empty": "only empty fields"
 }

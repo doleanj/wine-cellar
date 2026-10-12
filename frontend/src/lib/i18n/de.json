@@ -440,5 +440,17 @@
   "elabel_f_image_url": "Foto",
   "detail_keep_until": "Trinken bis",
   "detail_serving_temp": "Servieren bei",
-  "detail_purchase_date": "Gekauft"
+  "detail_purchase_date": "Gekauft",
+
+  "fill_found_link": "Produktseite gefunden – Auswahl übernehmen",
+  "preview_field": "Feld",
+  "preview_current": "Aktuell",
+  "preview_new": "Neu",
+  "preview_same": "gleich",
+  "preview_apply": "Auswahl übernehmen",
+  "preview_cancel": "Abbrechen",
+  "preview_select": "Auswahl",
+  "preview_all": "alle",
+  "preview_none": "keine",
+  "preview_only_empty": "nur leere Felder"
 }

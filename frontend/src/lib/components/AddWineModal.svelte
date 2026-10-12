@@ -7,6 +7,7 @@
   import BarcodeScanner from './BarcodeScanner.svelte';
   import PairingPicker from './PairingPicker.svelte';
   import TasteBadge from './TasteBadge.svelte';
+  import FillPreview from './FillPreview.svelte';
   import { PROFILE_MIN, PROFILE_MAX, SWEETNESS } from '$lib/wine-reference.js';
 
   function autoResize(node) {
@@ -89,7 +90,7 @@
     try {
       const res = await fetcher();
       const rows = PREVIEW_FIELDS.filter(k => isFilled(res.fields[k]))
-        .map(k => ({ key: k, value: res.fields[k], on: !isFilled(form[k]) }));
+        .map(k => ({ key: k, value: res.fields[k] }));
       elabel = { ...res, rows };
     } catch {
       elabelError = true;
@@ -97,11 +98,11 @@
     } finally { elabelBusy = false; }
   }
 
-  async function applyElabel() {
+  async function applyElabel(selected) {
     const upd = {};
     if (elabel.fields.elabel_url) upd.elabel_url = elabel.fields.elabel_url;
     if (elabel.source === 'leclerc' && elabel.fields.url) upd.url = elabel.fields.url;
-    for (const r of elabel.rows) if (r.on) upd[r.key] = r.value;
+    for (const r of selected) upd[r.key] = r.value;
     if (upd.image_url) {
       try { upd.image_url = (await uploadFromUrl(upd.image_url)).url; } catch { delete upd.image_url; }
     }
@@ -193,6 +194,21 @@
 
 
 </script>
+
+{#if elabel}
+  <FillPreview
+    title={elabel.source === 'leclerc' ? $t('fill_found_link') : $t('elabel_found')}
+    rows={elabel.rows}
+    current={form}
+    notes={[
+      ...(elabel.existing_wine_id ? [$t('elabel_existing')] : []),
+      ...(elabel.description_lang && elabel.description_lang !== $lang && elabel.rows.some(r => r.key === 'description')
+        ? [$t('elabel_lang_warn').replace('{lang}', elabel.description_lang)] : []),
+    ]}
+    on:apply={e => applyElabel(e.detail)}
+    on:close={() => elabel = null}
+  />
+{/if}
 
 {#if showScanner}
   <BarcodeScanner on:scan={handleScan} on:close={() => showScanner = false} />
@@ -300,26 +316,6 @@
 
             {#if elabelBusy}<p class="elabel-note">{$t('elabel_loading')}</p>{/if}
             {#if elabelError}<p class="elabel-note elabel-err">{$t('elabel_unavailable')}</p>{/if}
-            {#if elabel}
-              <div class="elabel-box">
-                <strong>{$t('elabel_found')}</strong>
-                {#if elabel.existing_wine_id}<p class="elabel-note">{$t('elabel_existing')}</p>{/if}
-                {#each elabel.rows as r (r.key)}
-                  <label class="elabel-row">
-                    <input type="checkbox" bind:checked={r.on} />
-                    <span class="elabel-key">{$t('elabel_f_' + r.key)}</span>
-                    <span class="elabel-val">{typeof r.value === 'boolean' ? '✓' : r.value}</span>
-                  </label>
-                {/each}
-                {#if elabel.description_lang && elabel.description_lang !== $lang && elabel.rows.some(r => r.key === 'description')}
-                  <p class="elabel-note">{$t('elabel_lang_warn').replace('{lang}', elabel.description_lang)}</p>
-                {/if}
-                <div class="elabel-actions">
-                  <button type="button" class="btn-camera" on:click={applyElabel}>{$t('elabel_apply')}</button>
-                  <button type="button" class="btn-camera" on:click={() => elabel = null}>{$t('elabel_dismiss')}</button>
-                </div>
-              </div>
-            {/if}
 
             <!-- Bewertung -->
             <div class="panel-rating">
@@ -489,7 +485,7 @@
               </div>
               {#if isLeclercUrl(form.url)}
                 <div class="field span-2">
-                  <button type="button" class="btn-camera" on:click={fillFromLink} disabled={elabelBusy}>{$t('action_fill_from_link')}</button>
+                  <button type="button" class="btn-fill" on:click={fillFromLink} disabled={elabelBusy}>{elabelBusy ? $t('elabel_loading') : $t('action_fill_from_link')}</button>
                 </div>
               {/if}
 
@@ -1118,11 +1114,8 @@
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   }
 
-  .elabel-box { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin: 8px 0; background: var(--surface-2); display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-  .elabel-row { display: flex; gap: 8px; align-items: baseline; cursor: pointer; }
-  .elabel-key { color: var(--text-muted); min-width: 110px; flex-shrink: 0; }
-  .elabel-val { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
   .elabel-note { margin: 4px 0; font-size: 12px; color: var(--text-muted); }
   .elabel-err { color: #b3261e; }
-  .elabel-actions { display: flex; gap: 8px; margin-top: 6px; }
+  .btn-fill { align-self: flex-start; background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn-fill:disabled { opacity: .6; cursor: progress; }
 </style>

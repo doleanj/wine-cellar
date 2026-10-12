@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 from fastapi import FastAPI, HTTPException, Depends, File, Header, Query, Request, UploadFile
 import httpx
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, Response, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 import bcrypt as _bcrypt
 from jose import JWTError, jwt
@@ -25,6 +25,7 @@ import pillow_heif
 pillow_heif.register_heif_opener()
 from pydantic import AfterValidator, BaseModel, Field, field_validator
 from regions_seed import REGIONS_SEED
+import backups
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, text, func, or_
@@ -32,6 +33,20 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////app/data/wines.db")
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+# ── Database backups (see backups.py) ───────────────────────────────────────────
+DB_PATH = backups.db_path_from_url(DATABASE_URL)
+BACKUPS_DIR = Path(os.getenv("BACKUPS_DIR") or (DB_PATH.parent / "backups" if DB_PATH else "/app/data/backups"))
+BACKUP_KEEP = int(os.getenv("BACKUP_KEEP", "14"))   # newest N per reason (startup / daily / manual)
+
+# Copy the database before the automatic migrations below run (at most once an hour, so redeploys do not pile up).
+if DB_PATH is not None:
+    _age = backups.newest_age_seconds(BACKUPS_DIR, "startup")
+    if _age is None or _age > 3600:
+        try:
+            backups.backup_db(DB_PATH, BACKUPS_DIR, "startup", BACKUP_KEEP)
+        except Exception as _e:  # never block startup because of a backup problem
+            print(f"⚠️  startup backup failed: {_e}", flush=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -570,6 +585,20 @@ def health():
 async def _capture_loop():
     global _main_loop
     _main_loop = asyncio.get_running_loop()
+    if DB_PATH is not None:
+        asyncio.create_task(_daily_backup_loop())
+
+
+async def _daily_backup_loop():
+    """Take a "daily" backup whenever the newest one is older than 23 h (checked hourly)."""
+    while True:
+        try:
+            age = backups.newest_age_seconds(BACKUPS_DIR, "daily")
+            if age is None or age > 23 * 3600:
+                await asyncio.to_thread(backups.backup_db, DB_PATH, BACKUPS_DIR, "daily", BACKUP_KEEP)
+        except Exception as e:
+            print(f"⚠️  daily backup failed: {e}", flush=True)
+        await asyncio.sleep(3600)
 
 app.add_middleware(
     CORSMiddleware,
@@ -1046,6 +1075,30 @@ def delete_drink_rule(rule_id: int, db: Session = Depends(get_db), _=Depends(req
     db.delete(rule)
     db.commit()
     return {"ok": True}
+
+
+# ── Database backups ──────────────────────────────────────────────────────────
+
+@app.get("/backups")
+def get_backups(_=Depends(require_auth)):
+    return backups.list_backups(BACKUPS_DIR)
+
+
+@app.post("/backups")
+def create_backup(_=Depends(require_auth)):
+    if DB_PATH is None:
+        raise HTTPException(status_code=400, detail="Backups sind nur mit SQLite verfügbar")
+    path = backups.backup_db(DB_PATH, BACKUPS_DIR, "manual", BACKUP_KEEP)
+    if path is None:
+        raise HTTPException(status_code=500, detail="Datenbank nicht gefunden")
+    return next(b for b in backups.list_backups(BACKUPS_DIR) if b["name"] == path.name)
+
+
+@app.get("/backups/{name}")
+def download_backup(name: str, _=Depends(require_auth)):
+    if not backups.NAME_RE.match(name) or not (BACKUPS_DIR / name).is_file():
+        raise HTTPException(status_code=404, detail="Backup nicht gefunden")
+    return FileResponse(BACKUPS_DIR / name, media_type="application/octet-stream", filename=name)
 
 
 # ── Regions ───────────────────────────────────────────────────────────────────

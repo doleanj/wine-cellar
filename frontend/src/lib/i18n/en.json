@@ -372,5 +372,13 @@
   "err_update": "Error while updating",
   "err_delete": "Error while deleting",
   "err_load_library": "Error while loading the library",
-  "scanner_insecure": "The camera needs a secure (HTTPS) connection. Open the app over https://, or enter the barcode manually."
+  "scanner_insecure": "The camera needs a secure (HTTPS) connection. Open the app over https://, or enter the barcode manually.",
+  "backup_section": "Database backups",
+  "backup_desc": "A copy of the database is made automatically every day and before each app start (the newest 14 of each kind are kept next to the data). Photos stay in the data folder.",
+  "backup_now": "Back up now",
+  "backup_download": "Download",
+  "backup_none": "No backups yet.",
+  "backup_reason_daily": "daily",
+  "backup_reason_startup": "at start",
+  "backup_reason_manual": "manual"
 }

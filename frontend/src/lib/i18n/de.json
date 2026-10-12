@@ -372,5 +372,13 @@
   "err_update": "Fehler beim Aktualisieren",
   "err_delete": "Fehler beim Löschen",
   "err_load_library": "Fehler beim Laden der Bibliothek",
-  "scanner_insecure": "Die Kamera benötigt eine sichere Verbindung (HTTPS). Öffne die App über https:// oder gib den Barcode manuell ein."
+  "scanner_insecure": "Die Kamera benötigt eine sichere Verbindung (HTTPS). Öffne die App über https:// oder gib den Barcode manuell ein.",
+  "backup_section": "Datenbank-Backups",
+  "backup_desc": "Eine Kopie der Datenbank wird automatisch täglich und vor jedem App-Start erstellt (die jeweils neuesten 14 bleiben neben den Daten). Fotos liegen im Datenordner.",
+  "backup_now": "Jetzt sichern",
+  "backup_download": "Herunterladen",
+  "backup_none": "Noch keine Backups.",
+  "backup_reason_daily": "täglich",
+  "backup_reason_startup": "beim Start",
+  "backup_reason_manual": "manuell"
 }

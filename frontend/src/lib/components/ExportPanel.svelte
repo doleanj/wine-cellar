@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { exportWines, importWines } from '$lib/api.js';
-  import { t } from '$lib/stores/i18n.js';
+  import { exportWines, importWines, getBackups, createBackup, downloadBackup } from '$lib/api.js';
+  import { t, lang } from '$lib/stores/i18n.js';
   import Modal from './Modal.svelte';
 
   const dispatch = createEventDispatcher();
@@ -10,6 +10,22 @@
   let importResult = null;
   let importError = '';
   let fileInput;
+
+  // Database backups (daily + before each start; kept on the NAS next to the data)
+  let backups = [];
+  let backupBusy = false;
+  let backupError = '';
+  async function loadBackups() {
+    try { backups = await getBackups(); backupError = ''; } catch { backupError = $t('err_load'); }
+  }
+  async function backupNow() {
+    backupBusy = true;
+    try { await createBackup(); await loadBackups(); } catch { backupError = $t('err_save'); } finally { backupBusy = false; }
+  }
+  const fmtSize = n => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+  const fmtDate = ts => new Date(ts * 1000).toLocaleString($lang === 'de' ? 'de-AT' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' });
+  import { onMount } from 'svelte';
+  onMount(loadBackups);
 
   async function handleExport(format) {
     try { await exportWines(format); }
@@ -115,6 +131,36 @@
         {/if}
         {#if importError}
           <div class="result error">{importError}</div>
+        {/if}
+      </section>
+
+      <div class="divider"></div>
+
+      <section class="section">
+        <div class="section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+          {$t('backup_section')}
+        </div>
+        <p class="section-desc">{$t('backup_desc')}</p>
+        <div class="btn-row">
+          <button class="export-btn" on:click={backupNow} disabled={backupBusy}>{$t('backup_now')}</button>
+        </div>
+        {#if backupError}<div class="result error">{backupError}</div>{/if}
+        {#if backups.length}
+          <ul class="backup-list">
+            {#each backups.slice(0, 8) as b (b.name)}
+              <li>
+                <span class="b-date">{fmtDate(b.created)}</span>
+                <span class="b-reason">{$t('backup_reason_' + b.reason)}</span>
+                <span class="b-size">{fmtSize(b.size)}</span>
+                <button class="b-dl" on:click={() => downloadBackup(b.name)}>{$t('backup_download')}</button>
+              </li>
+            {/each}
+          </ul>
+        {:else}
+          <p class="section-desc">{$t('backup_none')}</p>
         {/if}
       </section>
     </div>
@@ -230,6 +276,11 @@
   }
   .import-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
+  .backup-list { list-style: none; margin: 10px 0 0; padding: 0; font-size: 12px; }
+  .backup-list li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); }
+  .b-date { flex: 1; color: var(--text); }
+  .b-reason, .b-size { color: var(--text-muted); }
+  .b-dl { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 12px; text-decoration: underline; }
   .divider {
     height: 1px;
     background: var(--border);

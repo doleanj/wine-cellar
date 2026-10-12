@@ -15,6 +15,8 @@ A self-hosted wine cellar management app. Track your collection, scan barcodes, 
 
 - **Appellation map (France):** the map view draws the delimited area of each appellation your wines belong to (strong fill when the appellation is known, light fill for region-only wines). Polygons are built from the INAO list of AOC/AOP communes ([data.gouv.fr](https://www.data.gouv.fr/datasets/aires-geographiques-des-aoc-aop), Licence Ouverte) joined with commune outlines from [geo.api.gouv.fr](https://geo.api.gouv.fr) (IGN, open data) by `scripts/build_appellation_geo.py`; commune level, so borders are approximate. Output: `frontend/static/geo/appellations.geojson`.
 
+- **Database backups:** a consistent SQLite copy (`<data>/backups/wines-<date>-<reason>.db`) is made before every app start (at most once an hour), then daily; the newest 14 of each kind are kept (`BACKUP_KEEP`, `BACKUPS_DIR`). List, "Back up now" and download are in the Backup & Import panel (`GET/POST /backups`, `GET /backups/{name}`). Photos live in the same data folder; take an off-NAS copy of the whole folder (Hyper Backup) for disk failures.
+
 ## Screenshots
 
 | Collection | Wine Details | Kiosk |

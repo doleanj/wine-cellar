@@ -214,6 +214,33 @@ export async function exportWines(format) {
   URL.revokeObjectURL(url);
 }
 
+export async function getBackups() {
+  const r = await fetch(`${BASE}/backups`, { headers: authHeaders() });
+  if (r.status === 401) throw new Error('UNAUTHORIZED');
+  if (!r.ok) throw new Error(tr('err_load'));
+  return r.json();
+}
+
+export async function createBackup() {
+  const r = await fetch(`${BASE}/backups`, { method: 'POST', headers: authHeaders() });
+  if (r.status === 401) throw new Error('UNAUTHORIZED');
+  if (!r.ok) throw new Error(tr('err_save'));
+  return r.json();
+}
+
+export async function downloadBackup(name) {
+  const r = await fetch(`${BASE}/backups/${encodeURIComponent(name)}`, { headers: authHeaders() });
+  if (!r.ok) throw new Error(tr('err_load'));
+  const url = URL.createObjectURL(await r.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export async function importWines(file) {
   const fd = new FormData();
   fd.append('file', file);

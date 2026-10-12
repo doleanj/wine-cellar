@@ -380,5 +380,16 @@
   "backup_none": "Noch keine Backups.",
   "backup_reason_daily": "täglich",
   "backup_reason_startup": "beim Start",
-  "backup_reason_manual": "manuell"
+  "backup_reason_manual": "manuell",
+  "nav_pairing": "Speisenempfehlung",
+  "pairing_title": "Was trinken zu…",
+  "pairing_sub": "Wähle die Gerichte: die Flaschen deines Kellers werden nach Passung sortiert.",
+  "pairing_pick": "Wähle oben ein oder mehrere Gerichte, um passende Flaschen aus deinem Keller zu sehen.",
+  "pairing_empty": "Keine Flasche im Bestand passt zu diesen Gerichten.",
+  "pairing_best": "Beste Treffer",
+  "pairing_suggested": "Nach Weintyp empfohlen",
+  "pairing_suggested_hint": "Für diese Flaschen gibt es keine Speisenempfehlung zur Auswahl; sie werden nur nach Weintyp vorgeschlagen.",
+  "pairing_only_ready": "Nur trinkreif",
+  "pairing_only_fav": "Nur Favoriten",
+  "pairing_clear": "Zurücksetzen"
 }

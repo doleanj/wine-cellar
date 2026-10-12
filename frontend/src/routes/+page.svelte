@@ -6,6 +6,7 @@
   import AddWineModal from '$lib/components/AddWineModal.svelte';
   import WineMap from '$lib/components/WineMap.svelte';
   import RegionsPanel from '$lib/components/RegionsPanel.svelte';
+  import PairingPanel from '$lib/components/PairingPanel.svelte';
   import LibraryManager from '$lib/components/LibraryManager.svelte';
   import ExportPanel from '$lib/components/ExportPanel.svelte';
   import BrandingPanel from '$lib/components/BrandingPanel.svelte';
@@ -35,6 +36,7 @@
   let modalHideStock = false;
   let showMap = false;
   let showRegions = false;
+  let showPairing = false;
   let showLibrary = false;
   let showExport = false;
   let showBranding = false;
@@ -425,6 +427,12 @@ function handleLibraryView(e) {
             <line x1="16" y1="6" x2="16" y2="22"/>
           </svg>
         </button>
+        <button class="icon-btn" on:click={() => showPairing = true} title={$t('nav_pairing')} aria-label={$t('nav_pairing')}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 3v7a3 3 0 003 3v8"/><path d="M7 3v7"/><path d="M10 3v7a3 3 0 01-3 3"/>
+            <path d="M18 3c-2 1.5-3 4-3 7 0 2 1 3 3 3v8"/>
+          </svg>
+        </button>
         <button class="icon-btn" on:click={() => showRegions = true} title={$t('nav_regions')} aria-label={$t('nav_regions')}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
@@ -700,6 +708,11 @@ function handleLibraryView(e) {
   <!-- Map -->
   {#if showMap}
     <WineMap {wines} on:close={() => showMap = false} on:selectWine={(e) => { editingWine = e.detail; modalHideStock = true; showModal = true; }} />
+  {/if}
+
+  <!-- Pairing finder -->
+  {#if showPairing}
+    <PairingPanel {wines} {drinkRules} on:close={() => showPairing = false} on:selectWine={(e) => { selectedWine = e.detail; }} />
   {/if}
 
   <!-- Regions -->

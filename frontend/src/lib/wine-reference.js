@@ -51,3 +51,51 @@ export function pairingItems(str, language = 'en') {
 export const PROFILE_MIN = 1;
 export const PROFILE_MAX = 5;
 export const SWEETNESS = ['sec', 'doux', 'moelleux'];
+
+// ── Pairing finder ────────────────────────────────────────────────────────────────────────────────
+// Wine types that usually go with each category: used when a bottle has no pairing data yet.
+export const PAIRING_TYPES = {
+  'aperitif': ['sparkling', 'white', 'rosé'], 'canard': ['red'], 'charcuterie': ['red', 'rosé'],
+  'cuisine-exotique': ['white', 'rosé'], 'desserts': ['dessert', 'sparkling'], 'foie-gras': ['dessert', 'white'],
+  'fromage-pate-dure': ['red', 'white'], 'fromage-pate-molle': ['white', 'red', 'sparkling'],
+  'fromage-persille': ['dessert', 'red'], 'fromage': ['red', 'white'], 'fruits-de-mer': ['white', 'sparkling'],
+  'gibiers': ['red'], 'grillades': ['red', 'rosé'], 'legumes-verts': ['white', 'rosé'],
+  'plats-en-sauce': ['red', 'white'], 'poisson': ['white', 'sparkling', 'rosé'], 'roti': ['red'],
+  'salade': ['white', 'rosé'], 'viande-rouge': ['red'], 'viande-blanche': ['white', 'rosé', 'red'],
+  'volaille': ['white', 'red'],
+};
+
+/** 'young' | 'ready' | 'late' | 'past' | null - same rule as the wine card (vintage + rule offsets). */
+export function drinkStatus(wine, rules, year = new Date().getFullYear()) {
+  if (!wine.vintage || !wine.type || !rules?.length) return null;
+  const rule = rules.find(r =>
+    (!r.wine_type || r.wine_type === wine.type) &&
+    (!r.grape || r.grape.toLowerCase() === (wine.grape || '').toLowerCase()));
+  if (!rule) return null;
+  const from = wine.vintage + rule.from_offset, to = wine.vintage + rule.to_offset;
+  if (year < from) return 'young';
+  if (year <= to) return 'ready';
+  if (year <= to + 3) return 'late';
+  return 'past';
+}
+
+/**
+ * Rank a wine for the selected dish categories. Returns null when it does not fit at all.
+ * explicit pairing match: +10 each; wine type fits a selected dish: +2 (alone: +3 "suggested by type");
+ * drink window: ready +2, young/late -1, past -3; favorite +1.
+ */
+export function scoreWine(wine, selected, rules) {
+  const have = new Set(splitPairings(wine.pairings));
+  const matched = selected.filter(k => have.has(k));
+  const typeHit = selected.some(k => (PAIRING_TYPES[k] || []).includes(wine.type));
+  const status = drinkStatus(wine, rules);
+  let score;
+  if (matched.length) score = matched.length * 10 + (typeHit ? 2 : 0);
+  else if (typeHit) score = 3;
+  else return null;
+  if (status === 'ready') score += 2;
+  else if (status === 'young' || status === 'late') score -= 1;
+  else if (status === 'past') score -= 3;
+  if (wine.favorite) score += 1;
+  return { wine, score, matched, status, fallback: matched.length === 0 };
+}

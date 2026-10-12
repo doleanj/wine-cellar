@@ -380,5 +380,16 @@
   "backup_none": "No backups yet.",
   "backup_reason_daily": "daily",
   "backup_reason_startup": "at start",
-  "backup_reason_manual": "manual"
+  "backup_reason_manual": "manual",
+  "nav_pairing": "Food pairing",
+  "pairing_title": "What to drink with…",
+  "pairing_sub": "Pick the dishes: your cellar bottles are ranked by how well they fit.",
+  "pairing_pick": "Select one or more dishes above to see which bottles of your cellar fit.",
+  "pairing_empty": "No bottle in stock fits these dishes.",
+  "pairing_best": "Best matches",
+  "pairing_suggested": "Suggested by wine type",
+  "pairing_suggested_hint": "These bottles have no pairing data for the selection; they are suggested from their wine type only.",
+  "pairing_only_ready": "Ready to drink only",
+  "pairing_only_fav": "Favorites only",
+  "pairing_clear": "Clear"
 }

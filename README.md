@@ -26,6 +26,18 @@ A self-hosted wine cellar management app. Track your collection, scan barcodes, 
 - **Longer region texts:** each region can carry an extra text and its source link (`extra`, `extra_source` on `PUT /regions/{key}`), shown under "More about this region". `scripts/fetch_leclerc_region_texts.py` reads the region paragraph e.leclerc shows on its wine pages (about 20 polite requests, texts written outside the repository) and `scripts/load_region_extra.py` uploads them. Leclerc's Savoie/Jura pages show the Alsace paragraph, so that region is skipped.
 - **Title migration:** an app title that is still exactly `KellerLog` (the old default) is renamed to `Wine Cellar` at startup; custom titles are never touched.
 
+## Off-NAS backup (pull from a Mac)
+
+The app already writes consistent database copies (`data/backups/wines-<date>-startup|daily|manual.db`, see "Database backups"). To survive a NAS disk failure you also need a copy on **another device**:
+
+1. One-time, on the Mac: `ssh-copy-id dolean_j@nashome` (you type the NAS password once; nothing is stored).
+2. Take a first snapshot: `scripts/backup_pull_from_nas.sh`. It pulls `data/` over SSH with rsync into `~/Backups/wine-cellar/<date>/` (photos and the app's database copies; the live `wines.db` is skipped on purpose, a file copied while the app writes can be corrupt), opens the newest database copy to check it is intact and keeps the newest 30 snapshots (unchanged files are hard links, so a snapshot costs only what changed). `--check` re-verifies the newest snapshot.
+3. Make it daily: `scripts/install_backup_agent.sh install` (launchd agent, 03:30, runs at wake if the Mac slept; log `~/Library/Logs/wine-cellar-backup.log`; a failed run shows a macOS notification).
+
+Settings go in `~/.config/wine-cellar-backup.env` (`NAS_USER`, `NAS_HOST`, `REMOTE_DIR`, `DEST`, `KEEP`). Point `DEST` at a Time Machine or cloud-synced folder to make the copy leave the house too. The freshest database is at most one day old (the app's daily backup).
+
+**Restore** (new NAS or after a disk failure): stop the project, copy the newest `backups/wines-*.db` of a snapshot to `data/wines.db`, copy `images/` to `data/images/`, make the files readable by the container user, start the project. Test it once on a copy before you need it.
+
 ## Screenshots
 
 | Collection | Wine Details | Kiosk |

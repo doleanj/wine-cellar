@@ -12,6 +12,11 @@
   let detected = false;
 
   onMount(async () => {
+    // Browsers only expose the camera on secure origins (HTTPS or localhost).
+    if (typeof window !== 'undefined' && (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia)) {
+      errorMsg = $t('scanner_insecure');
+      return;
+    }
     try {
       const reader = new BrowserMultiFormatReader();
       controls = await reader.decodeFromConstraints(
@@ -51,7 +56,7 @@
   }
 </script>
 
-<Modal variant="center" maxWidth="420px" labelledby="scanner-title" on:close={close}>
+<Modal variant="center" maxWidth="420px" labelledby="scanner-title" zIndex={300} on:close={close}>
   <div class="scanner-box">
     <header class="scanner-header">
       <span id="scanner-title">{$t('action_scan_barcode')}</span>

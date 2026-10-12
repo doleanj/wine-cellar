@@ -371,5 +371,6 @@
   "err_save": "Error while saving",
   "err_update": "Error while updating",
   "err_delete": "Error while deleting",
-  "err_load_library": "Error while loading the library"
+  "err_load_library": "Error while loading the library",
+  "scanner_insecure": "The camera needs a secure (HTTPS) connection. Open the app over https://, or enter the barcode manually."
 }

@@ -6,6 +6,7 @@
   export let closeOnBackdrop = true;
   export let closeOnEscape = true;
   export let maxWidth = undefined;
+  export let zIndex = undefined; // raise above other overlays (default 150)
 
   const dispatch = createEventDispatcher();
   let panelEl;
@@ -64,6 +65,7 @@
   class="kl-overlay"
   class:kl-overlay-center={variant === 'center'}
   class:kl-overlay-sheet={variant === 'sheet'}
+  style={zIndex ? `z-index: ${zIndex}` : undefined}
   on:click={handleBackdropClick}
   on:keydown={handleKeydown}
 >

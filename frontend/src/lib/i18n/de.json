@@ -371,5 +371,6 @@
   "err_save": "Fehler beim Speichern",
   "err_update": "Fehler beim Aktualisieren",
   "err_delete": "Fehler beim Löschen",
-  "err_load_library": "Fehler beim Laden der Bibliothek"
+  "err_load_library": "Fehler beim Laden der Bibliothek",
+  "scanner_insecure": "Die Kamera benötigt eine sichere Verbindung (HTTPS). Öffne die App über https:// oder gib den Barcode manuell ein."
 }

@@ -452,5 +452,16 @@
   "preview_select": "Select",
   "preview_all": "all",
   "preview_none": "none",
-  "preview_only_empty": "only empty fields"
+  "preview_only_empty": "only empty fields",
+
+  "info_sources_title": "Supported sites",
+  "info_sources_intro": "Paste a product link in the URL field and press the button: these sites can be read automatically. Each fill shows a comparison first; nothing is saved until you apply it.",
+  "info_sources_fills": "Fills",
+  "info_sources_none": "The list could not be loaded.",
+  "info_sources_qr_title": "Scan a QR code (EU e-label)",
+  "info_sources_qr": "Scan the QR code on the bottle: ingredients, nutrition values, grape, vintage and more, as entered by the producer.",
+  "info_sources_more": "Other shops need their own reader. Tell me which site you would like next.",
+  "info_sources_close": "Close",
+  "action_fill_from_site": "Fill from {site}",
+  "fill_unsupported_hint": "This site is not supported yet."
 }

@@ -164,6 +164,12 @@ export async function resolveElabel(url) {
   return r.json();
 }
 
+export async function getFillSources() {
+  const r = await fetch(`${BASE}/fill-sources`, { headers: authHeaders() });
+  if (!r.ok) return [];
+  return r.json();
+}
+
 export async function fillFromUrl(url) {
   const r = await fetch(`${BASE}/fill-from-url`, {
     method: 'POST',

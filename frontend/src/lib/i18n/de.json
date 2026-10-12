@@ -452,5 +452,16 @@
   "preview_select": "Auswahl",
   "preview_all": "alle",
   "preview_none": "keine",
-  "preview_only_empty": "nur leere Felder"
+  "preview_only_empty": "nur leere Felder",
+
+  "info_sources_title": "Unterstützte Seiten",
+  "info_sources_intro": "Produktlink im URL-Feld einfügen und den Button drücken: Diese Seiten können automatisch gelesen werden. Vor dem Übernehmen gibt es immer einen Vergleich; gespeichert wird erst nach Bestätigung.",
+  "info_sources_fills": "Füllt",
+  "info_sources_none": "Die Liste konnte nicht geladen werden.",
+  "info_sources_qr_title": "QR-Code scannen (EU-E-Label)",
+  "info_sources_qr": "QR-Code auf der Flasche scannen: Zutaten, Nährwerte, Rebsorte, Jahrgang und mehr, wie vom Erzeuger angegeben.",
+  "info_sources_more": "Weitere Shops brauchen einen eigenen Leser. Sag mir, welche Seite als Nächstes folgen soll.",
+  "info_sources_close": "Schließen",
+  "action_fill_from_site": "Aus {site} ausfüllen",
+  "fill_unsupported_hint": "Diese Seite wird noch nicht unterstützt."
 }

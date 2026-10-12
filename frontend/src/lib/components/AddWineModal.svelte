@@ -1,13 +1,14 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import Modal from './Modal.svelte';
-  import { lookupBarcode, uploadImage, uploadFromUrl, resolveElabel, fillFromUrl } from '$lib/api.js';
-  import { isElabelUrl, isLeclercUrl, PREVIEW_FIELDS, isFilled } from '$lib/elabel.js';
+  import { lookupBarcode, uploadImage, uploadFromUrl, resolveElabel, fillFromUrl, getFillSources } from '$lib/api.js';
+  import { isElabelUrl, matchSource, PREVIEW_FIELDS, isFilled } from '$lib/elabel.js';
   import { t, lang } from '$lib/stores/i18n.js';
   import BarcodeScanner from './BarcodeScanner.svelte';
   import PairingPicker from './PairingPicker.svelte';
   import TasteBadge from './TasteBadge.svelte';
   import FillPreview from './FillPreview.svelte';
+  import SourcesInfo from './SourcesInfo.svelte';
   import { PROFILE_MIN, PROFILE_MAX, SWEETNESS } from '$lib/wine-reference.js';
 
   function autoResize(node) {
@@ -73,6 +74,12 @@
   ];
 
   // E-label preview: fields found for a scanned QR link, each applied only when ticked.
+  let fillSources = [];
+  let showSources = false;
+  onMount(async () => { try { fillSources = await getFillSources(); } catch { /* optional */ } });
+  $: fillSource = matchSource(form.url, fillSources);
+  $: looksLikeLink = /^https:\/\/[^\s/]+\/./.test((form.url || '').trim());
+
   let elabel = null;       // { fields, description_lang, existing_wine_id, rows: [{key, value, on}] }
   let elabelBusy = false;
   let elabelError = false;
@@ -101,7 +108,7 @@
   async function applyElabel(selected) {
     const upd = {};
     if (elabel.fields.elabel_url) upd.elabel_url = elabel.fields.elabel_url;
-    if (elabel.source === 'leclerc' && elabel.fields.url) upd.url = elabel.fields.url;
+    if (elabel.source && elabel.fields.url) upd.url = elabel.fields.url;
     for (const r of selected) upd[r.key] = r.value;
     if (upd.image_url) {
       try { upd.image_url = (await uploadFromUrl(upd.image_url)).url; } catch { delete upd.image_url; }
@@ -197,10 +204,11 @@
 
 {#if elabel}
   <FillPreview
-    title={elabel.source === 'leclerc' ? $t('fill_found_link') : $t('elabel_found')}
+    title={elabel.source ? $t('fill_found_link') : $t('elabel_found')}
     rows={elabel.rows}
     current={form}
     notes={[
+      ...(elabel.source_name ? [elabel.source_name] : []),
       ...(elabel.existing_wine_id ? [$t('elabel_existing')] : []),
       ...(elabel.description_lang && elabel.description_lang !== $lang && elabel.rows.some(r => r.key === 'description')
         ? [$t('elabel_lang_warn').replace('{lang}', elabel.description_lang)] : []),
@@ -208,6 +216,10 @@
     on:apply={e => applyElabel(e.detail)}
     on:close={() => elabel = null}
   />
+{/if}
+
+{#if showSources}
+  <SourcesInfo sources={fillSources} on:close={() => showSources = false} />
 {/if}
 
 {#if showScanner}
@@ -480,12 +492,21 @@
               </div>
 
               <div class="field span-2">
-                <label for="wine-url">{$t('modal_field_url')}</label>
+                <label for="wine-url" class="url-label">{$t('modal_field_url')}
+                  <button type="button" class="info-btn" on:click={() => showSources = true}
+                          aria-label={$t('info_sources_title')} title={$t('info_sources_title')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  </button>
+                </label>
                 <input id="wine-url" type="url" bind:value={form.url} placeholder="https://" maxlength="2000" />
               </div>
-              {#if isLeclercUrl(form.url)}
+              {#if fillSource}
                 <div class="field span-2">
-                  <button type="button" class="btn-fill" on:click={fillFromLink} disabled={elabelBusy}>{elabelBusy ? $t('elabel_loading') : $t('action_fill_from_link')}</button>
+                  <button type="button" class="btn-fill" on:click={fillFromLink} disabled={elabelBusy}>{elabelBusy ? $t('elabel_loading') : $t('action_fill_from_site').replace('{site}', fillSource.name)}</button>
+                </div>
+              {:else if looksLikeLink && fillSources.length}
+                <div class="field span-2">
+                  <p class="elabel-note">{$t('fill_unsupported_hint')} <button type="button" class="link-btn" on:click={() => showSources = true}>{$t('info_sources_title')}</button></p>
                 </div>
               {/if}
 
@@ -1118,4 +1139,8 @@
   .elabel-err { color: #b3261e; }
   .btn-fill { align-self: flex-start; background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .btn-fill:disabled { opacity: .6; cursor: progress; }
+  .url-label { display: flex; align-items: center; gap: 6px; }
+  .info-btn { background: none; border: none; padding: 0; color: var(--text-muted); cursor: pointer; display: inline-flex; }
+  .info-btn:hover { color: var(--primary); }
+  .link-btn { background: none; border: none; padding: 0; color: var(--primary); text-decoration: underline; cursor: pointer; font-size: inherit; }
 </style>

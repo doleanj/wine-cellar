@@ -27,7 +27,9 @@ from pydantic import AfterValidator, BaseModel, Field, field_validator
 from regions_seed import REGIONS_SEED
 import backups
 import elabel
+import lcdbb
 import leclerc
+import sources
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, text, func, or_
@@ -1588,23 +1590,31 @@ async def elabel_resolve(request: Request, body: dict, db: Session = Depends(get
     return result
 
 
+@app.get("/fill-sources")
+def fill_sources(_=Depends(require_login)):
+    """Sites the "fill from link" feature can read, with the fields each fills."""
+    return sources.describe()
+
+
 @app.post("/fill-from-url")
 @limiter.limit("20/minute")
 async def fill_from_url(request: Request, body: dict, _=Depends(require_login)):
-    """Read an e.leclerc product page (one request per explicit user action) and return wine fields."""
-    url = leclerc.canonical_url((body.get("url") or "").strip())
-    if not url:
-        raise HTTPException(status_code=400, detail="Nur e.leclerc-Produktseiten (/fp/...) werden unterstützt")
+    """Read one supported product page (one request per explicit user action) and return wine fields."""
+    src, url = sources.match((body.get("url") or "").strip())
+    if not src:
+        raise HTTPException(status_code=400, detail="Diese Seite wird nicht unterstützt (siehe Liste der Quellen)")
     try:
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=False,
                                      headers={"User-Agent": "Mozilla/5.0 (personal wine-cellar app)"}) as client:
             resp = await client.get(url)
         if resp.status_code != 200:
             raise HTTPException(status_code=502, detail="Seite nicht verfügbar")
-        return leclerc.parse(resp.text, url)
+        result = src.parse(resp.text, url)
+        result["source_name"] = src.NAME
+        return result
     except HTTPException:
         raise
-    except (leclerc.LeclercError, httpx.HTTPError, ValueError):
+    except (leclerc.LeclercError, lcdbb.LcdbbError, httpx.HTTPError, ValueError):
         raise HTTPException(status_code=502, detail="Seite konnte nicht gelesen werden")
 
 

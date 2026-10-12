@@ -55,7 +55,11 @@ def _json_ld_product(page: str) -> dict:
             d = json.loads(m.group(1))
         except ValueError:
             continue
-        for item in (d if isinstance(d, list) else [d]):
+        items = d if isinstance(d, list) else [d]
+        for item in list(items):  # Yoast/WooCommerce nest everything under "@graph"
+            if isinstance(item, dict) and isinstance(item.get("@graph"), list):
+                items.extend(item["@graph"])
+        for item in items:
             if isinstance(item, dict) and item.get("@type") == "Product":
                 return item
     return {}

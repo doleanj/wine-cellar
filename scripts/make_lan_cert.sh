@@ -5,14 +5,18 @@
 #   e.g. scripts/make_lan_cert.sh ~/workspace/wine-cellar-assets/tls 800 wine-cellar.nashome nashome 10.0.4.97
 #
 # Output (in <out-dir>):  ca.crt (install on devices, import as "intermediate" in DSM), ca.key (KEEP SECRET, never share),
-#                         server.crt + server.key (import into DSM: Control Panel > Security > Certificate > Add > Import).
+#                         $BASE.crt + $BASE.key (import into DSM: Control Panel > Security > Certificate > Add > Import).
 # Re-running with more names re-issues the server certificate with the SAME CA, so devices keep trusting it.
 # <days> must be <= 825: Apple devices reject longer server-certificate lifetimes even from an installed CA.
-# Browsers ignore the common name: every host name / IP has to be listed explicitly (no "*.nashome": a wildcard
-# directly under a single-label domain is rejected by Chrome).
+# Browsers ignore the common name: every host name / IP has to be in the SAN list. A wildcard ("*.nashome") does NOT work
+# for a single-label domain (OpenSSL/curl and Chrome reject it, verified), so list every site explicitly. Adding a site
+# later = re-run with the extra name and re-import the certificate in DSM ("Replace an existing certificate").
+# (A wildcard would work with a two-label domain such as *.nas.home.arpa.)
+#   BASENAME=nashome-lan scripts/make_lan_cert.sh <dir> 800 nashome wine-cellar.nashome grafana.nashome 10.0.4.97
 set -euo pipefail
 [ $# -ge 3 ] || { sed -n '2,13p' "$0"; exit 1; }
 OUT="$1"; DAYS="$2"; shift 2
+BASE="${BASENAME:-server}"   # output file base name, e.g. BASENAME=nashome-lan
 [ "$DAYS" -le 825 ] || { echo "days must be <= 825" >&2; exit 1; }
 mkdir -p "$OUT"; chmod 700 "$OUT"; cd "$OUT"
 
@@ -37,22 +41,22 @@ if [ ! -f ca.key ]; then
   echo "created CA: $OUT/ca.crt"
 fi
 
-openssl genrsa -out server.key 2048 2>/dev/null; chmod 600 server.key
+openssl genrsa -out $BASE.key 2048 2>/dev/null; chmod 600 $BASE.key
 {
   echo "[req]"; echo "distinguished_name=dn"; echo "req_extensions=v3_req"; echo "prompt=no"
   echo "[dn]"; echo "CN=$1"
   echo "[v3_req]"; echo "subjectAltName=@san"
   echo "[san]"; d=0; ip=0
   for n in "$@"; do if [[ "$n" =~ ^[0-9.]+$ ]]; then echo "IP.$ip=$n"; ip=$((ip+1)); else echo "DNS.$d=$n"; d=$((d+1)); fi; done
-} > server.cnf
-openssl req -new -key server.key -config server.cnf -out server.csr
+} > $BASE.cnf
+openssl req -new -key $BASE.key -config $BASE.cnf -out $BASE.csr
 {
   echo "basicConstraints=critical,CA:false"; echo "keyUsage=critical,digitalSignature,keyEncipherment"
   echo "extendedKeyUsage=serverAuth"; echo "subjectKeyIdentifier=hash"; echo "authorityKeyIdentifier=keyid"
-  echo "subjectAltName=@san"; sed -n '/^\[san\]/,$p' server.cnf
-} > server.ext
-openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -sha256 -days "$DAYS" -extfile server.ext -out server.crt 2>/dev/null
-rm -f server.csr
-openssl rsa -in server.key -traditional -out server-rsa.key 2>/dev/null; chmod 600 server-rsa.key   # classic PEM format, for importers that reject PKCS#8
-openssl verify -CAfile ca.crt server.crt
-openssl x509 -in server.crt -noout -subject -issuer -dates -ext subjectAltName
+  echo "subjectAltName=@san"; sed -n '/^\[san\]/,$p' $BASE.cnf
+} > $BASE.ext
+openssl x509 -req -in $BASE.csr -CA ca.crt -CAkey ca.key -CAcreateserial -sha256 -days "$DAYS" -extfile $BASE.ext -out $BASE.crt 2>/dev/null
+rm -f $BASE.csr
+openssl rsa -in $BASE.key -traditional -out $BASE-rsa.key 2>/dev/null; chmod 600 $BASE-rsa.key   # classic PEM format, for importers that reject PKCS#8
+openssl verify -CAfile ca.crt $BASE.crt
+openssl x509 -in $BASE.crt -noout -subject -issuer -dates -ext subjectAltName

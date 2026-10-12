@@ -309,6 +309,17 @@ Base.metadata.create_all(bind=engine)
 
 # ── Migrations ────────────────────────────────────────────────────────────────
 
+def _migrate_regions():
+    """Add the extra-text columns to an existing regions table. Must run BEFORE _seed_regions(), which
+    reads the table through the ORM (all mapped columns)."""
+    with engine.connect() as conn:
+        existing = {row[1] for row in conn.execute(text("PRAGMA table_info(regions)"))}
+        for col in ("extra", "extra_source"):
+            if col not in existing:
+                conn.execute(text(f"ALTER TABLE regions ADD COLUMN {col} TEXT DEFAULT ''"))
+        conn.commit()
+
+
 def _seed_regions():
     with Session(engine) as db:
         known = {r.key for r in db.query(Region).all()}
@@ -318,18 +329,8 @@ def _seed_regions():
                               appellations=json.dumps(seed["appellations"], ensure_ascii=False)))
         db.commit()
 
-_seed_regions()
-
-
-def _migrate_regions():
-    with engine.connect() as conn:
-        existing = {row[1] for row in conn.execute(text("PRAGMA table_info(regions)"))}
-        for col in ("extra", "extra_source"):
-            if col not in existing:
-                conn.execute(text(f"ALTER TABLE regions ADD COLUMN {col} TEXT DEFAULT ''"))
-        conn.commit()
-
 _migrate_regions()
+_seed_regions()
 
 
 def _migrate_library_columns():

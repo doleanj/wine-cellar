@@ -8,7 +8,7 @@ import secrets
 import socket
 import uuid
 import shutil
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Optional, List, Literal
 from urllib.parse import urlparse
@@ -27,6 +27,7 @@ from pydantic import AfterValidator, BaseModel, Field, field_validator
 from regions_seed import REGIONS_SEED
 import backups
 import elabel
+import leclerc
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, text, func, or_
@@ -205,6 +206,11 @@ class WineLibrary(Base):
     carbs_g_100ml = Column(Float, nullable=True)
     bottled_by = Column(String, default="")
     volume_ml = Column(Integer, nullable=True)
+    # Cellar notes (from a product page or typed)
+    keep_until_years = Column(Integer, nullable=True)      # "à boire jusqu'à N ans" after the vintage
+    serving_temp = Column(Integer, nullable=True)          # °C
+    purchase_date = Column(String, default="")             # YYYY-MM-DD or empty
+    tasting = Column(String, default="")                   # eye / nose / palate
     saved_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
     created_by = Column(String, default="")
@@ -330,6 +336,10 @@ def _migrate_library_columns():
         ("carbs_g_100ml",       "REAL"),
         ("bottled_by",          "TEXT DEFAULT ''"),
         ("volume_ml",           "INTEGER"),
+        ("keep_until_years",    "INTEGER"),
+        ("serving_temp",        "INTEGER"),
+        ("purchase_date",       "TEXT DEFAULT ''"),
+        ("tasting",             "TEXT DEFAULT ''"),
     ]
     with engine.connect() as conn:
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(wine_library)"))}
@@ -666,6 +676,19 @@ def _check_wine_url(v: str) -> str:
 WineUrl = Annotated[str, AfterValidator(_check_wine_url)]
 
 
+def _check_iso_date(v: str) -> str:
+    v = (v or "").strip()
+    if v:
+        try:
+            date.fromisoformat(v)
+        except ValueError:
+            raise ValueError("purchase_date must be YYYY-MM-DD")
+    return v
+
+
+IsoDate = Annotated[str, AfterValidator(_check_iso_date)]
+
+
 class WineCreate(BaseModel):
     name: str
     producer: str = ""
@@ -699,6 +722,10 @@ class WineCreate(BaseModel):
     carbs_g_100ml: Optional[float] = None
     bottled_by: str = ""
     volume_ml: Optional[int] = None
+    keep_until_years: Optional[int] = None
+    serving_temp: Optional[int] = None
+    purchase_date: IsoDate = ""
+    tasting: str = ""
     by_glass: bool = False
     price_per_glass: Optional[float] = None
     location: str = ""
@@ -738,6 +765,10 @@ class WineUpdate(BaseModel):
     carbs_g_100ml: Optional[float] = None
     bottled_by: Optional[str] = None
     volume_ml: Optional[int] = None
+    keep_until_years: Optional[int] = None
+    serving_temp: Optional[int] = None
+    purchase_date: Optional[IsoDate] = None
+    tasting: Optional[str] = None
     by_glass: Optional[bool] = None
     price_per_glass: Optional[float] = None
     location: Optional[str] = None
@@ -778,6 +809,10 @@ class WineResponse(BaseModel):
     carbs_g_100ml: Optional[float] = None
     bottled_by: str = ""
     volume_ml: Optional[int] = None
+    keep_until_years: Optional[int] = None
+    serving_temp: Optional[int] = None
+    purchase_date: str = ""
+    tasting: str = ""
     by_glass: bool
     price_per_glass: Optional[float]
     location: str
@@ -1553,6 +1588,26 @@ async def elabel_resolve(request: Request, body: dict, db: Session = Depends(get
     return result
 
 
+@app.post("/fill-from-url")
+@limiter.limit("20/minute")
+async def fill_from_url(request: Request, body: dict, _=Depends(require_login)):
+    """Read an e.leclerc product page (one request per explicit user action) and return wine fields."""
+    url = leclerc.canonical_url((body.get("url") or "").strip())
+    if not url:
+        raise HTTPException(status_code=400, detail="Nur e.leclerc-Produktseiten (/fp/...) werden unterstützt")
+    try:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=False,
+                                     headers={"User-Agent": "Mozilla/5.0 (personal wine-cellar app)"}) as client:
+            resp = await client.get(url)
+        if resp.status_code != 200:
+            raise HTTPException(status_code=502, detail="Seite nicht verfügbar")
+        return leclerc.parse(resp.text, url)
+    except HTTPException:
+        raise
+    except (leclerc.LeclercError, httpx.HTTPError, ValueError):
+        raise HTTPException(status_code=502, detail="Seite konnte nicht gelesen werden")
+
+
 @app.get("/lookup/{barcode}", response_model=Optional[LibraryLookupResponse])
 def lookup_barcode(barcode: str, db: Session = Depends(get_db), _=Depends(require_login)):
     lib = db.query(WineLibrary).filter(WineLibrary.barcode == barcode).first()
@@ -1569,6 +1624,7 @@ _EXPORT_FIELDS = [
     'url', 'profile_fruit', 'profile_personality', 'sweetness', 'favorite',
     'elabel_url', 'ingredients', 'sulphites', 'energy_kcal_100ml', 'sugar_g_100ml',
     'carbs_g_100ml', 'bottled_by', 'volume_ml',
+    'keep_until_years', 'serving_temp', 'purchase_date', 'tasting',
 ]
 
 

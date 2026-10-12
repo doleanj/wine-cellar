@@ -1,8 +1,8 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import Modal from './Modal.svelte';
-  import { lookupBarcode, uploadImage, resolveElabel } from '$lib/api.js';
-  import { isElabelUrl, ELABEL_FIELDS, isFilled } from '$lib/elabel.js';
+  import { lookupBarcode, uploadImage, uploadFromUrl, resolveElabel, fillFromUrl } from '$lib/api.js';
+  import { isElabelUrl, isLeclercUrl, PREVIEW_FIELDS, isFilled } from '$lib/elabel.js';
   import { t, lang } from '$lib/stores/i18n.js';
   import BarcodeScanner from './BarcodeScanner.svelte';
   import PairingPicker from './PairingPicker.svelte';
@@ -34,7 +34,8 @@
     pairings: '', description: '', by_glass: false, price_per_glass: null,
     location: '', url: '', profile_fruit: null, profile_personality: null, sweetness: '',
     elabel_url: '', ingredients: '', sulphites: false, energy_kcal_100ml: null,
-    sugar_g_100ml: null, carbs_g_100ml: null, bottled_by: '', volume_ml: null
+    sugar_g_100ml: null, carbs_g_100ml: null, bottled_by: '', volume_ml: null,
+    keep_until_years: null, serving_temp: null, purchase_date: '', tasting: ''
   };
 
   function initForm() {
@@ -76,21 +77,34 @@
   let elabelError = false;
 
   async function handleElabel(url) {
+    await loadPreview(() => resolveElabel(url), () => { form = { ...form, barcode: url }; });
+  }
+
+  async function fillFromLink() {
+    await loadPreview(() => fillFromUrl(form.url.trim()), () => {});
+  }
+
+  async function loadPreview(fetcher, onFail) {
     elabelBusy = true; elabelError = false; elabel = null;
     try {
-      const res = await resolveElabel(url);
-      const rows = ELABEL_FIELDS.filter(k => isFilled(res.fields[k]))
+      const res = await fetcher();
+      const rows = PREVIEW_FIELDS.filter(k => isFilled(res.fields[k]))
         .map(k => ({ key: k, value: res.fields[k], on: !isFilled(form[k]) }));
       elabel = { ...res, rows };
     } catch {
       elabelError = true;
-      form = { ...form, barcode: url };
+      onFail();
     } finally { elabelBusy = false; }
   }
 
-  function applyElabel() {
-    const upd = { elabel_url: elabel.fields.elabel_url };
+  async function applyElabel() {
+    const upd = {};
+    if (elabel.fields.elabel_url) upd.elabel_url = elabel.fields.elabel_url;
+    if (elabel.source === 'leclerc' && elabel.fields.url) upd.url = elabel.fields.url;
     for (const r of elabel.rows) if (r.on) upd[r.key] = r.value;
+    if (upd.image_url) {
+      try { upd.image_url = (await uploadFromUrl(upd.image_url)).url; } catch { delete upd.image_url; }
+    }
     form = { ...form, ...upd };
     elabel = null;
   }
@@ -472,6 +486,28 @@
               <div class="field span-2">
                 <label for="wine-url">{$t('modal_field_url')}</label>
                 <input id="wine-url" type="url" bind:value={form.url} placeholder="https://" maxlength="2000" />
+              </div>
+              {#if isLeclercUrl(form.url)}
+                <div class="field span-2">
+                  <button type="button" class="btn-camera" on:click={fillFromLink} disabled={elabelBusy}>{$t('action_fill_from_link')}</button>
+                </div>
+              {/if}
+
+              <div class="field">
+                <label for="wine-purchase">{$t('modal_field_purchase_date')}</label>
+                <input id="wine-purchase" type="date" bind:value={form.purchase_date} />
+              </div>
+              <div class="field">
+                <label for="wine-keep">{$t('modal_field_keep_until')}</label>
+                <input id="wine-keep" type="number" min="0" max="80" bind:value={form.keep_until_years} />
+              </div>
+              <div class="field">
+                <label for="wine-temp">{$t('modal_field_serving_temp')}</label>
+                <input id="wine-temp" type="number" min="0" max="30" bind:value={form.serving_temp} />
+              </div>
+              <div class="field span-2">
+                <label for="wine-tasting">{$t('modal_field_tasting')}</label>
+                <textarea id="wine-tasting" rows="3" bind:value={form.tasting} maxlength="2000"></textarea>
               </div>
 
               <div class="field-divider"></div>

@@ -164,6 +164,16 @@ export async function resolveElabel(url) {
   return r.json();
 }
 
+export async function fillFromUrl(url) {
+  const r = await fetch(`${BASE}/fill-from-url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ url }),
+  });
+  if (!r.ok) throw new Error('Fill from link failed');
+  return r.json();
+}
+
 export async function uploadImage(file) {
   const fd = new FormData();
   fd.append('file', file);

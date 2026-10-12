@@ -422,5 +422,23 @@
   "detail_sulphites": "Enthält Sulfite",
   "detail_nutrition": "Pro 100 ml",
   "detail_bottled_by": "Abgefüllt von",
-  "detail_elabel_open": "E-Label öffnen"
+  "detail_elabel_open": "E-Label öffnen",
+
+  "action_fill_from_link": "Aus Link ausfüllen",
+  "modal_field_purchase_date": "Kaufdatum",
+  "modal_field_keep_until": "Lagerfähig (Jahre)",
+  "modal_field_serving_temp": "Trinktemperatur (°C)",
+  "modal_field_tasting": "Verkostungsnotizen",
+  "elabel_f_pairings": "Speisenempfehlung",
+  "elabel_f_profile_fruit": "Frucht (1-5)",
+  "elabel_f_profile_personality": "Persönlichkeit (1-5)",
+  "elabel_f_keep_until_years": "Lagerfähig (Jahre)",
+  "elabel_f_serving_temp": "Trinktemperatur (°C)",
+  "elabel_f_tasting": "Verkostungsnotizen",
+  "elabel_f_price": "Preis",
+  "elabel_f_barcode": "Barcode",
+  "elabel_f_image_url": "Foto",
+  "detail_keep_until": "Trinken bis",
+  "detail_serving_temp": "Servieren bei",
+  "detail_purchase_date": "Gekauft"
 }

@@ -13,14 +13,14 @@
   export let selected = false;
 
   $: drinkStatus = (() => {
-    if (!showDrinkWindow || !wine.vintage || !wine.type || !drinkRules.length) return null;
+    if (!showDrinkWindow || !wine.vintage || !wine.type || (!drinkRules.length && !wine.keep_until_years)) return null;
     const rule = drinkRules.find(r =>
       (!r.wine_type || r.wine_type === wine.type) &&
       (!r.grape || r.grape.toLowerCase() === (wine.grape || '').toLowerCase())
     );
-    if (!rule) return null;
-    const from = wine.vintage + rule.from_offset;
-    const to   = wine.vintage + rule.to_offset;
+    if (!rule && !wine.keep_until_years) return null;
+    const from = wine.vintage + (rule ? rule.from_offset : 0);
+    const to   = wine.vintage + (wine.keep_until_years ? wine.keep_until_years : rule.to_offset);
     const now  = new Date().getFullYear();
     if (now < from)    return 'young';
     if (now <= to)     return 'ready';

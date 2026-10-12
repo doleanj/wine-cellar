@@ -71,8 +71,10 @@ export function drinkStatus(wine, rules, year = new Date().getFullYear()) {
   const rule = rules.find(r =>
     (!r.wine_type || r.wine_type === wine.type) &&
     (!r.grape || r.grape.toLowerCase() === (wine.grape || '').toLowerCase()));
-  if (!rule) return null;
-  const from = wine.vintage + rule.from_offset, to = wine.vintage + rule.to_offset;
+  if (!rule && !wine.keep_until_years) return null;
+  // a "keep until N years" noted on the wine overrides the rule's end of window
+  const from = wine.vintage + (rule ? rule.from_offset : 0);
+  const to = wine.vintage + (wine.keep_until_years ? wine.keep_until_years : rule.to_offset);
   if (year < from) return 'young';
   if (year <= to) return 'ready';
   if (year <= to + 3) return 'late';

@@ -422,5 +422,23 @@
   "detail_sulphites": "Contains sulphites",
   "detail_nutrition": "Per 100 ml",
   "detail_bottled_by": "Bottled by",
-  "detail_elabel_open": "Open e-label"
+  "detail_elabel_open": "Open e-label",
+
+  "action_fill_from_link": "Fill from link",
+  "modal_field_purchase_date": "Purchase date",
+  "modal_field_keep_until": "Keep for (years)",
+  "modal_field_serving_temp": "Serving temp. (°C)",
+  "modal_field_tasting": "Tasting notes",
+  "elabel_f_pairings": "Pairings",
+  "elabel_f_profile_fruit": "Fruit (1-5)",
+  "elabel_f_profile_personality": "Personality (1-5)",
+  "elabel_f_keep_until_years": "Keep for (years)",
+  "elabel_f_serving_temp": "Serving temp. (°C)",
+  "elabel_f_tasting": "Tasting notes",
+  "elabel_f_price": "Price",
+  "elabel_f_barcode": "Barcode",
+  "elabel_f_image_url": "Photo",
+  "detail_keep_until": "Drink until",
+  "detail_serving_temp": "Serve at",
+  "detail_purchase_date": "Purchased"
 }

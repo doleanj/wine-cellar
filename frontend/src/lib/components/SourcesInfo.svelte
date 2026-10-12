@@ -22,7 +22,8 @@
       {#each sources as s (s.key)}
         <section class="src">
           <h3>{s.name}</h3>
-          <p class="host">{s.hosts[0]}{s.path_prefix}…</p>
+          <p class="host">{s.hosts[0] === '*' ? $t('info_sources_any') : `${s.hosts[0]}${s.path_prefix}…`}</p>
+          {#if s.hosts[0] === '*'}<p class="fills">{$t('info_sources_generic_note')}</p>{/if}
           <p class="fills"><b>{$t('info_sources_fills')}:</b> {s.fields.filter(f => f !== 'url').map(f => $t('elabel_f_' + f)).join(', ')}</p>
         </section>
       {:else}

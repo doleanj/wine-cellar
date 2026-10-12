@@ -78,7 +78,7 @@
   let showSources = false;
   onMount(async () => { try { fillSources = await getFillSources(); } catch { /* optional */ } });
   $: fillSource = matchSource(form.url, fillSources);
-  $: looksLikeLink = /^https:\/\/[^\s/]+\/./.test((form.url || '').trim());
+  $: looksLikeHttp = /^http:\/\/[^\s/]+/.test((form.url || '').trim());
 
   let elabel = null;       // { fields, description_lang, existing_wine_id, rows: [{key, value, on}] }
   let elabelBusy = false;
@@ -502,11 +502,11 @@
               </div>
               {#if fillSource}
                 <div class="field span-2">
-                  <button type="button" class="btn-fill" on:click={fillFromLink} disabled={elabelBusy}>{elabelBusy ? $t('elabel_loading') : $t('action_fill_from_site').replace('{site}', fillSource.name)}</button>
+                  <button type="button" class="btn-fill" on:click={fillFromLink} disabled={elabelBusy}>{elabelBusy ? $t('elabel_loading') : (fillSource.key === 'generic' ? $t('action_fill_generic') : $t('action_fill_from_site').replace('{site}', fillSource.name))}</button>
                 </div>
-              {:else if looksLikeLink && fillSources.length}
+              {:else if looksLikeHttp}
                 <div class="field span-2">
-                  <p class="elabel-note">{$t('fill_unsupported_hint')} <button type="button" class="link-btn" on:click={() => showSources = true}>{$t('info_sources_title')}</button></p>
+                  <p class="elabel-note">{$t('fill_http_hint')} <button type="button" class="link-btn" on:click={() => showSources = true}>{$t('info_sources_title')}</button></p>
                 </div>
               {/if}
 

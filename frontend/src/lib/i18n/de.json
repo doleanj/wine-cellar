@@ -463,5 +463,10 @@
   "info_sources_more": "Weitere Shops brauchen einen eigenen Leser. Sag mir, welche Seite als Nächstes folgen soll.",
   "info_sources_close": "Schließen",
   "action_fill_from_site": "Aus {site} ausfüllen",
-  "fill_unsupported_hint": "Diese Seite wird noch nicht unterstützt."
+  "fill_unsupported_hint": "Diese Seite wird noch nicht unterstützt.",
+
+  "action_fill_generic": "Aus dieser Seite ausfüllen (Basisdaten)",
+  "info_sources_any": "Jede andere https-Produktseite",
+  "info_sources_generic_note": "Nach bestem Wissen: nur was die Seite in Standard-Produktdaten angibt. Den Vergleich bitte genau prüfen.",
+  "fill_http_hint": "Nur https-Links werden unterstützt."
 }

@@ -27,6 +27,7 @@ from pydantic import AfterValidator, BaseModel, Field, field_validator
 from regions_seed import REGIONS_SEED
 import backups
 import elabel
+import generic
 import lcdbb
 import leclerc
 import sources
@@ -1596,25 +1597,52 @@ def fill_sources(_=Depends(require_login)):
     return sources.describe()
 
 
+FILL_MAX_BYTES = 4 * 1024 * 1024
+
+
+async def _fetch_page(url: str, generic_source: bool) -> str:
+    """GET one page. Generic sources: every hop must be https on port 443 to a public host; HTML only;
+    body capped at FILL_MAX_BYTES. Redirects are followed by hand (at most 3) so each target is validated."""
+    async with httpx.AsyncClient(timeout=15.0, follow_redirects=False,
+                                 headers={"User-Agent": "Mozilla/5.0 (personal wine-cellar app)"}) as client:
+        for _hop in range(4):
+            if generic_source:
+                host = urlparse(url).hostname
+                if not generic.canonical_url(url) or not host or not _is_public_host(host):
+                    raise HTTPException(status_code=400, detail="URL nicht erlaubt")
+            async with client.stream("GET", url) as resp:
+                if resp.has_redirect_location and generic_source:
+                    url = str(resp.url.join(resp.headers["location"]))
+                    continue
+                if resp.status_code != 200:
+                    raise HTTPException(status_code=502, detail="Seite nicht verfügbar")
+                ctype = resp.headers.get("content-type", "")
+                if generic_source and "html" not in ctype.lower():
+                    raise HTTPException(status_code=400, detail="Keine Webseite")
+                body = b""
+                async for chunk in resp.aiter_bytes():
+                    body += chunk
+                    if len(body) > FILL_MAX_BYTES:
+                        break
+                return body[:FILL_MAX_BYTES].decode(resp.encoding or "utf-8", errors="replace")
+    raise HTTPException(status_code=502, detail="Zu viele Weiterleitungen")
+
+
 @app.post("/fill-from-url")
 @limiter.limit("20/minute")
 async def fill_from_url(request: Request, body: dict, _=Depends(require_login)):
-    """Read one supported product page (one request per explicit user action) and return wine fields."""
+    """Read one product page (one request per explicit user action) and return wine fields."""
     src, url = sources.match((body.get("url") or "").strip())
     if not src:
-        raise HTTPException(status_code=400, detail="Diese Seite wird nicht unterstützt (siehe Liste der Quellen)")
+        raise HTTPException(status_code=400, detail="Nur https-Links werden unterstützt")
     try:
-        async with httpx.AsyncClient(timeout=15.0, follow_redirects=False,
-                                     headers={"User-Agent": "Mozilla/5.0 (personal wine-cellar app)"}) as client:
-            resp = await client.get(url)
-        if resp.status_code != 200:
-            raise HTTPException(status_code=502, detail="Seite nicht verfügbar")
-        result = src.parse(resp.text, url)
+        page = await _fetch_page(url, getattr(src, "GENERIC", False))
+        result = src.parse(page, url)
         result["source_name"] = src.NAME
         return result
     except HTTPException:
         raise
-    except (leclerc.LeclercError, lcdbb.LcdbbError, httpx.HTTPError, ValueError):
+    except (leclerc.LeclercError, lcdbb.LcdbbError, generic.GenericError, httpx.HTTPError, ValueError):
         raise HTTPException(status_code=502, detail="Seite konnte nicht gelesen werden")
 
 

@@ -60,8 +60,10 @@ def _json_ld_product(page: str) -> dict:
             if isinstance(item, dict) and isinstance(item.get("@graph"), list):
                 items.extend(item["@graph"])
         for item in items:
-            if isinstance(item, dict) and item.get("@type") == "Product":
-                return item
+            if isinstance(item, dict):
+                t = item.get("@type")
+                if t == "Product" or (isinstance(t, list) and "Product" in t):
+                    return item
     return {}
 
 

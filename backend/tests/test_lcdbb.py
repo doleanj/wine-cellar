@@ -43,27 +43,25 @@ def test_sources_dispatch_and_description():
     mod, canon = sources.match(URL + "?x=1")
     assert mod is lcdbb and canon == URL
     assert sources.match("https://www.e.leclerc/fp/abc-123")[0].KEY == "leclerc"
-    assert sources.match("https://example.com/x")[0] is None
+    assert sources.match("https://example.com/x")[0].KEY == "generic"
+    assert sources.match("http://example.com/x")[0] is None
     keys = [s["key"] for s in sources.describe()]
-    assert keys == ["leclerc", "lcdbb"]
+    assert keys == ["leclerc", "lcdbb", "generic"]
 
 
 def test_endpoints(client, admin_headers, monkeypatch):
     import httpx
-    import main
     assert client.get("/fill-sources").status_code == 401
     r = client.get("/fill-sources", headers=admin_headers)
-    assert r.status_code == 200 and [s["key"] for s in r.json()] == ["leclerc", "lcdbb"]
+    assert r.status_code == 200 and [s["key"] for s in r.json()] == ["leclerc", "lcdbb", "generic"]
 
-    class FakeClient:
-        def __init__(self, *a, **k): pass
-        async def __aenter__(self): return self
-        async def __aexit__(self, *a): return False
-        async def get(self, url):
-            assert url == URL
-            return httpx.Response(200, text=PAGE)
+    from tests.webmock import patch_web
 
-    monkeypatch.setattr(main.httpx, "AsyncClient", FakeClient)
+    def handler(request):
+        assert str(request.url) == URL
+        return httpx.Response(200, text=PAGE, headers={"content-type": "text/html; charset=utf-8"})
+
+    patch_web(monkeypatch, handler)
     r = client.post("/fill-from-url", json={"url": URL + "?utm=1"}, headers=admin_headers)
     assert r.status_code == 200 and r.json()["source"] == "lcdbb" and r.json()["source_name"] == lcdbb.NAME
-    assert client.post("/fill-from-url", json={"url": "https://example.com/x"}, headers=admin_headers).status_code == 400
+    assert client.post("/fill-from-url", json={"url": "http://example.com/x"}, headers=admin_headers).status_code == 400

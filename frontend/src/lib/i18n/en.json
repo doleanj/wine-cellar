@@ -463,5 +463,10 @@
   "info_sources_more": "Other shops need their own reader. Tell me which site you would like next.",
   "info_sources_close": "Close",
   "action_fill_from_site": "Fill from {site}",
-  "fill_unsupported_hint": "This site is not supported yet."
+  "fill_unsupported_hint": "This site is not supported yet.",
+
+  "action_fill_generic": "Fill from this page (basic data)",
+  "info_sources_any": "Any other https product page",
+  "info_sources_generic_note": "Best effort: only what the page states in standard product data. Check the comparison carefully.",
+  "fill_http_hint": "Only https links are supported."
 }

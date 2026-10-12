@@ -30,7 +30,10 @@ export function matchSource(text, sources) {
   try {
     const u = new URL((text || '').trim());
     if (u.protocol !== 'https:') return null;
-    return (sources || []).find(s => s.hosts.includes(u.hostname) && u.pathname.startsWith(s.path_prefix)) || null;
+    const list = sources || [];
+    // a site-specific reader first, the generic "any other shop" reader as the fallback
+    return list.find(s => !s.hosts.includes('*') && s.hosts.includes(u.hostname) && u.pathname.startsWith(s.path_prefix))
+        || list.find(s => s.hosts.includes('*')) || null;
   } catch {
     return null;
   }

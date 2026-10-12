@@ -57,17 +57,13 @@ def test_endpoint_rejects_other_urls(client, admin_headers):
 
 def test_endpoint_parses_and_wine_keeps_the_new_fields(client, admin_headers, monkeypatch):
     import httpx
-    import main
+    from tests.webmock import patch_web
 
-    class FakeClient:
-        def __init__(self, *a, **k): pass
-        async def __aenter__(self): return self
-        async def __aexit__(self, *a): return False
-        async def get(self, url):
-            assert url == URL  # tracking params were stripped before the request
-            return httpx.Response(200, text=PAGE)
+    def handler(request):
+        assert str(request.url) == URL  # tracking params were stripped before the request
+        return httpx.Response(200, text=PAGE, headers={"content-type": "text/html; charset=utf-8"})
 
-    monkeypatch.setattr(main.httpx, "AsyncClient", FakeClient)
+    patch_web(monkeypatch, handler)
     r = client.post("/fill-from-url", json={"url": URL + "?et_keyword=abc"}, headers=admin_headers)
     assert r.status_code == 200
     fields = r.json()["fields"]

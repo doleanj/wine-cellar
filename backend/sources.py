@@ -1,4 +1,5 @@
 """Registry of supported "fill from link" sites: one parser module per site."""
+import generic
 import lcdbb
 import leclerc
 
@@ -12,7 +13,7 @@ leclerc.FIELDS = ["name", "grape", "vintage", "type", "region", "country", "alco
                   "pairings", "profile_fruit", "profile_personality", "keep_until_years", "serving_temp",
                   "tasting", "price", "barcode", "image_url", "url"]
 
-SOURCES = [leclerc, lcdbb]
+SOURCES = [leclerc, lcdbb, generic]  # generic last: it accepts any https page
 
 
 def match(url: str):

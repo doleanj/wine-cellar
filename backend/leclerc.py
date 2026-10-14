@@ -8,7 +8,10 @@ import html as htmllib
 import json
 import re
 from typing import Optional
+import unicodedata
 from urllib.parse import urlparse
+
+from regions_seed import REGIONS_SEED
 
 ALLOWED_HOSTS = ("www.e.leclerc", "e.leclerc")
 
@@ -101,6 +104,59 @@ def pairing_keys(text: str) -> str:
     return ",".join(keys)
 
 
+def _norm(s: str) -> str:
+    s = unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", " ", s).strip()
+
+
+# Leclerc's region wording -> our seed region key (when it is not the seed name itself)
+REGION_ALIASES = {"bordeaux": "bordelais", "rhone": "vallee-du-rhone", "cotes du rhone": "vallee-du-rhone",
+                  "loire": "vallee-de-la-loire", "languedoc": "languedoc-roussillon",
+                  "roussillon": "languedoc-roussillon", "savoie": "savoie-jura", "jura": "savoie-jura",
+                  "bourgogne beaujolais": "bourgogne", "sud ouest": "sud-ouest"}
+
+
+def _region_key(region: str) -> Optional[str]:
+    n = _norm(region)
+    for r in REGIONS_SEED:
+        if n == _norm(r["name"]):
+            return r["key"]
+    return REGION_ALIASES.get(n)
+
+
+def _appellation_region(appellation: str) -> Optional[dict]:
+    """Seed region whose appellation list holds this appellation ("Saint-Emilion Grand Cru" -> Bordelais)."""
+    n = _norm(appellation)
+    best = None
+    for r in REGIONS_SEED:
+        for a in r["appellations"]:
+            na = _norm(a)
+            if (n == na or n.startswith(na + " ")) and (best is None or len(na) > best[0]):
+                best = (len(na), r)
+    return best[1] if best else None
+
+
+def fix_region(region: str, appellation: str) -> str:
+    """Leclerc sometimes files an appellation under the wrong region (Fronton under Bordeaux). When the
+    appellation belongs to another known region, use that one; otherwise keep Leclerc's wording."""
+    owner = _appellation_region(appellation)
+    if owner and region and _region_key(region) != owner["key"]:
+        return owner["name"]
+    return region
+
+
+PRODUCER_WORDS = ("château", "chateau", "domaine", "clos", "mas", "maison", "cave", "caves", "cellier",
+                  "vignoble", "vignobles")
+
+
+def producer_from_name(name: str) -> str:
+    """Leclerc has no producer field; a name starting with Château / Domaine / Clos ... is the producer."""
+    words = (name or "").split()
+    if not words or words[0].lower() not in PRODUCER_WORDS:
+        return ""
+    return re.sub(r"(?:\s+(?:BIO|(?:19|20)\d\d))+$", "", name.strip(), flags=re.I).strip()
+
+
 LABELS = {
     "Millésime", "Couleur (Vin)", "Région viticole", "Appellation viticole", "Cépage", "Pays d'origine",
     "Contenu net", "Alcool", "Allergène(s)", "Accords Mets et Vins", "Arômes", "Dégustation bouche (bouche)",
@@ -128,6 +184,7 @@ def parse(page: str, url: str) -> dict:
         image = ""
 
     region, appellation = attrs.get("Région viticole", ""), attrs.get("Appellation viticole", "")
+    region = fix_region(region, appellation)
     region_text = ", ".join(x for x in (region, appellation) if x)
     colour = COLOURS.get(attrs.get("Couleur (Vin)", "").lower(), "")
     cl = _float(attrs.get("Contenu net", ""))
@@ -145,6 +202,7 @@ def parse(page: str, url: str) -> dict:
 
     fields = {
         "name": name,
+        "producer": producer_from_name(name),
         "grape": attrs.get("Cépage", ""),
         "vintage": _int(attrs.get("Millésime", "")),
         "type": colour,

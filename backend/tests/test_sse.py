@@ -11,6 +11,8 @@ import asyncio
 import time
 
 import pytest
+from starlette.requests import Request
+
 import main
 
 
@@ -47,20 +49,35 @@ def subscriber():
     _unsubscribe(q)
 
 
+@pytest.fixture()
+def one_shot_stream(monkeypatch):
+    """End /events after its first message. The test client never reports a client
+    disconnect, so the endless stream would otherwise keep the test waiting forever.
+    Returns the subscriber counts seen while the stream was open."""
+    seen = []
+
+    async def disconnected(self):
+        seen.append(len(main._sse_subscribers))
+        return True
+
+    monkeypatch.setattr(Request, "is_disconnected", disconnected)
+    return seen
+
+
 # ── HTTP-level tests ──────────────────────────────────────────────────────────
 
-def test_sse_endpoint_no_auth_required(client):
+def test_sse_endpoint_no_auth_required(client, one_shot_stream):
     """GET /events must be accessible without a token."""
     with client.stream("GET", "/events") as r:
         assert r.status_code == 200
 
 
-def test_sse_content_type(client):
+def test_sse_content_type(client, one_shot_stream):
     with client.stream("GET", "/events") as r:
         assert "text/event-stream" in r.headers["content-type"]
 
 
-def test_sse_initial_retry_directive(client):
+def test_sse_initial_retry_directive(client, one_shot_stream):
     """First data sent must be the retry directive."""
     with client.stream("GET", "/events") as r:
         for line in r.iter_lines():
@@ -69,12 +86,12 @@ def test_sse_initial_retry_directive(client):
                 break
 
 
-def test_sse_subscriber_registered_and_removed(client):
+def test_sse_subscriber_registered_and_removed(client, one_shot_stream):
     """Opening a connection adds a subscriber; closing removes it."""
     before = len(main._sse_subscribers)
-    with client.stream("GET", "/events"):
-        assert len(main._sse_subscribers) == before + 1
-    time.sleep(0.05)
+    with client.stream("GET", "/events") as r:
+        r.read()
+    assert one_shot_stream == [before + 1]
     assert len(main._sse_subscribers) == before
 
 
@@ -121,7 +138,7 @@ def test_sse_batch_update_notifies(client, admin_headers, subscriber):
     q = _subscribe()
 
     client.put("/wines/batch",
-               json={"ids": [id1, id2], "updates": {"quantity": 10}},
+               json={"ids": [id1, id2], "updates": {"location": "Rack B"}},
                headers=admin_headers)
     events = _drain(q)
     assert events == ["wines"]

@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ghcr.io/doleanj/wine-cellar-backend:latest
+    image: ghcr.io/doleanj/wine-cellar-backend:edge
     volumes:
       - ./kellerlog:/app/data
     environment:
@@ -11,7 +11,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/doleanj/wine-cellar-frontend:latest
+    image: ghcr.io/doleanj/wine-cellar-frontend:edge
     ports:
       - "8080:80"
     depends_on:

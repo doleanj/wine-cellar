@@ -4,6 +4,16 @@
 // 'planned' or 'in-progress' to track something that spans several PRs; drop it once shipped.
 export const CHANGELOG = [
   {
+    version: '2026-10-14.3',
+    items: [
+      'Add from links (menu): paste several product links or a whole order or cart, review the bottles, add them all to the cellar or the wishlist',
+      'A bottle you already have (same EAN or link) gets the bottles added instead of a duplicate; a wished bottle you buy leaves the wishlist (also with quick-add and the inventory scan)',
+      'e.leclerc pages: producer taken from names like Château… / Domaine…; an appellation filed under the wrong region (Fronton under Bordeaux) gets its real region',
+      'Batch edit works again (it was rejected by the server)',
+      'README: image tags (edge, not latest) and amd64-only images'
+    ]
+  },
+  {
     version: '2026-10-14.2',
     items: [
       'Wishlist: mark wines you want to buy, with a target price; they can have 0 bottles and stay out of the cellar, map, regions and stats',

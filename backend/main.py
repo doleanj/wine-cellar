@@ -1404,6 +1404,24 @@ def get_wine(wine_id: int, db: Session = Depends(get_db), _=Depends(require_logi
     return _wine_to_dict(wine, cvs)
 
 
+# Declared before PUT /wines/{wine_id}, which would otherwise match "batch" as an id (422).
+@app.put("/wines/batch")
+def batch_update_wines(data: WineBatchUpdate, db: Session = Depends(get_db), _=Depends(require_auth)):
+    if not data.ids:
+        raise HTTPException(status_code=400, detail="Keine IDs angegeben")
+    updates = data.updates.model_dump(exclude_none=True)
+    if not updates:
+        raise HTTPException(status_code=400, detail="Keine Felder zum Aktualisieren")
+    wines = db.query(WineLibrary).filter(WineLibrary.id.in_(data.ids)).all()
+    for wine in wines:
+        for field, value in updates.items():
+            setattr(wine, field, value)
+        wine.updated_at = datetime.utcnow()
+    db.commit()
+    notify_clients()
+    return {"updated": len(wines)}
+
+
 @app.put("/wines/{wine_id}", response_model=WineResponse)
 def update_wine(wine_id: int, wine_update: WineUpdate, db: Session = Depends(get_db), payload=Depends(require_auth)):
     wine = db.get(WineLibrary, wine_id)
@@ -1422,23 +1440,6 @@ def update_wine(wine_id: int, wine_update: WineUpdate, db: Session = Depends(get
     cvs = {r.field_key: r.value for r in db.query(WineCustomValue).filter(WineCustomValue.wine_id == wine_id).all()}
     notify_clients()
     return _wine_to_dict(wine, cvs)
-
-
-@app.put("/wines/batch")
-def batch_update_wines(data: WineBatchUpdate, db: Session = Depends(get_db), _=Depends(require_auth)):
-    if not data.ids:
-        raise HTTPException(status_code=400, detail="Keine IDs angegeben")
-    updates = data.updates.model_dump(exclude_none=True)
-    if not updates:
-        raise HTTPException(status_code=400, detail="Keine Felder zum Aktualisieren")
-    wines = db.query(WineLibrary).filter(WineLibrary.id.in_(data.ids)).all()
-    for wine in wines:
-        for field, value in updates.items():
-            setattr(wine, field, value)
-        wine.updated_at = datetime.utcnow()
-    db.commit()
-    notify_clients()
-    return {"updated": len(wines)}
 
 
 @app.delete("/wines/{wine_id}")
@@ -1669,7 +1670,7 @@ async def _fetch_page(url: str, generic_source: bool) -> str:
 
 @app.post("/fill-from-url")
 @limiter.limit("20/minute")
-async def fill_from_url(request: Request, body: dict, _=Depends(require_login)):
+async def fill_from_url(request: Request, body: dict, db: Session = Depends(get_db), _=Depends(require_login)):
     """Read one product page (one request per explicit user action) and return wine fields."""
     src, url = sources.match((body.get("url") or "").strip())
     if not src:
@@ -1678,6 +1679,14 @@ async def fill_from_url(request: Request, body: dict, _=Depends(require_login)):
         page = await _fetch_page(url, getattr(src, "GENERIC", False))
         result = src.parse(page, url)
         result["source_name"] = src.NAME
+        # Same bottle already known (by EAN, else by its link): the caller adds stock to it instead of a duplicate.
+        f = result.get("fields") or {}
+        local = None
+        if f.get("barcode"):
+            local = db.query(WineLibrary).filter(WineLibrary.barcode == f["barcode"]).first()
+        if local is None and f.get("url"):
+            local = db.query(WineLibrary).filter(WineLibrary.url == f["url"]).first()
+        result["existing_wine_id"] = local.id if local else None
         return result
     except HTTPException:
         raise

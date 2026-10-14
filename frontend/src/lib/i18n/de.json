@@ -493,5 +493,31 @@
   "modal_field_target_price": "Zielpreis (€)",
 
   "count_bottle": "Flasche",
-  "count_bottles": "Flaschen"
+  "count_bottles": "Flaschen",
+
+  "links_menu": "Aus Links hinzufügen",
+  "links_title_cellar": "Flaschen aus Links hinzufügen",
+  "links_title_wishlist": "Wünsche aus Links hinzufügen",
+  "links_close": "Schließen",
+  "links_mode": "Hinzufügen zu",
+  "links_mode_cellar": "Keller",
+  "links_mode_wishlist": "Wunschliste",
+  "links_intro": "Produktlinks einfügen, einer pro Zeile oder der Text einer ganzen Bestellung oder eines Warenkorbs: jeder https-Link wird mit „Aus Link füllen“ gelesen. Eine bekannte Flasche (gleiche EAN oder gleicher Link) bekommt die Flaschen dazu statt eines Duplikats; ein gewünschter Wein verlässt die Wunschliste.",
+  "links_found": "{n} Link(s) gefunden",
+  "links_read": "{n} Seite(n) lesen",
+  "links_reading": "Wird gelesen…",
+  "links_error": "Seite konnte nicht gelesen werden",
+  "links_include": "Übernehmen",
+  "links_new": "Neuer Wein",
+  "links_known_add_stock": "Schon im Keller ({n}): Flaschen werden ergänzt",
+  "links_wish_bought": "Auf deiner Wunschliste: als gekauft markiert",
+  "links_known_add_wish": "Schon bekannt: kommt auf die Wunschliste",
+  "links_already_wished": "Schon auf der Wunschliste",
+  "links_qty": "Flaschen",
+  "links_target": "Ziel €",
+  "links_back": "Zurück",
+  "links_add_cellar": "{n} in den Keller",
+  "links_add_wishlist": "{n} auf die Wunschliste",
+  "links_toast": "{n} Wein(e) hinzugefügt",
+  "links_toast_failed": "{n} fehlgeschlagen"
 }

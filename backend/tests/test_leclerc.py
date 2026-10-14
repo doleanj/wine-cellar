@@ -74,3 +74,57 @@ def test_endpoint_parses_and_wine_keeps_the_new_fields(client, admin_headers, mo
     assert d["tasting"].startswith("Œil")
     bad = client.post("/wines", json={"name": "X", "purchase_date": "12/10/2026"}, headers=admin_headers)
     assert bad.status_code == 422
+
+
+@pytest.mark.parametrize("region, appellation, expected", [
+    ("Bordeaux", "Fronton", "Sud-Ouest"),                          # Leclerc files Fronton under Bordeaux
+    ("Bordeaux", "Saint-Emilion Grand Cru", "Bordeaux"),           # same region: Leclerc wording kept
+    ("Languedoc-Roussillon", "Pic-Saint-Loup", "Languedoc-Roussillon"),
+    ("Sud-Ouest", "Gaillac", "Sud-Ouest"),
+    ("Vallée du Rhône", "Crozes-Hermitage", "Vallée du Rhône"),
+    ("Testland", "Exemple", "Testland"),                           # unknown appellation: unchanged
+    ("", "Fronton", ""),                                           # no region given: nothing invented
+])
+def test_fix_region(region, appellation, expected):
+    assert leclerc.fix_region(region, appellation) == expected
+
+
+@pytest.mark.parametrize("name, producer", [
+    ("Château Tour De Pressac 2022", "Château Tour De Pressac"),
+    ("Domaine du mas amiel BIO", "Domaine du mas amiel"),
+    ("Clos Maginiai BIO", "Clos Maginiai"),
+    ("Domaine Barreau", "Domaine Barreau"),
+    ("Les charmes", ""),
+    ("Laurent Brotte", ""),
+    ("Plaimont Les vieilles vignes", ""),
+])
+def test_producer_from_name(name, producer):
+    assert leclerc.producer_from_name(name) == producer
+
+
+def test_parse_sample_has_no_producer_for_a_cuvee_name():
+    assert leclerc.parse(PAGE, URL)["fields"]["producer"] == ""
+
+
+def test_endpoint_reports_a_known_bottle(client, admin_headers, monkeypatch):
+    import httpx
+    from tests.webmock import patch_web
+
+    patch_web(monkeypatch, lambda request: httpx.Response(200, text=PAGE, headers={"content-type": "text/html"}))
+    fields = client.post("/fill-from-url", json={"url": URL}, headers=admin_headers).json()["fields"]
+    client.post("/wines", json={**fields, "quantity": 0, "wishlist": True}, headers=admin_headers)
+    found = client.post("/fill-from-url", json={"url": URL}, headers=admin_headers).json()["existing_wine_id"]
+    rows = client.get("/export/json", headers=admin_headers).json()
+    assert found is not None
+    assert fields["barcode"] in {r["barcode"] for r in rows}
+    assert client.get(f"/wines/{found}", headers=admin_headers).json()["barcode"] == fields["barcode"]
+
+
+def test_endpoint_reports_no_match_for_an_unknown_bottle(client, admin_headers, monkeypatch):
+    import httpx
+    from tests.webmock import patch_web
+
+    page = PAGE.replace("1234567890123", "9999999999994")
+    patch_web(monkeypatch, lambda request: httpx.Response(200, text=page, headers={"content-type": "text/html"}))
+    other = "https://www.e.leclerc/fp/another-wine-9999999999994"
+    assert client.post("/fill-from-url", json={"url": other}, headers=admin_headers).json()["existing_wine_id"] is None

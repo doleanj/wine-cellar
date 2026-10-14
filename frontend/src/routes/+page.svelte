@@ -16,6 +16,7 @@
   import BatchEditPanel from '$lib/components/BatchEditPanel.svelte';
   import CustomFieldsPanel from '$lib/components/CustomFieldsPanel.svelte';
   import ChangelogModal from '$lib/components/ChangelogModal.svelte';
+  import AddFromLinksPanel from '$lib/components/AddFromLinksPanel.svelte';
   import WineDetail from '$lib/components/WineDetail.svelte';
   import { isElabelUrl } from '$lib/elabel.js';
   import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
@@ -41,6 +42,15 @@
   let showPairing = false;
   let showLibrary = false;
   let showChangelog = false;
+  let showLinks = false;
+
+  async function handleLinksDone(e) {
+    showLinks = false;
+    wines = await getWines();
+    stats = await getStats();
+    const { added, failed } = e.detail;
+    showToast($t('links_toast').replace('{n}', added) + (failed ? ` · ${$t('links_toast_failed').replace('{n}', failed)}` : ''));
+  }
 
   // Build baked in by CI (VITE_APP_SHA / VITE_APP_BUILD_DATE); empty when run from source.
   const buildSha = import.meta.env.VITE_APP_SHA || '';
@@ -271,6 +281,7 @@
           type: wine.type, price: wine.price, image_url: wine.image_url,
           barcode: wine.barcode,
           quantity: (wine.quantity || 0) + qty,
+          wishlist: false,   // bought: a wished bottle leaves the wishlist
         });
       } else {
         await createWine({ ...wine, quantity: qty });
@@ -322,7 +333,7 @@ function handleLibraryView(e) {
     const { wine, qty } = e.detail;
     libraryAddWine = null;
     try {
-      await updateWine(wine.id, { quantity: (wine.quantity || 0) + qty });
+      await updateWine(wine.id, { quantity: (wine.quantity || 0) + qty, wishlist: false });
       // Reload in case wine moved from 0→visible or changed position
       wines = await getWines();
       stats = await getStats();
@@ -396,6 +407,7 @@ function handleLibraryView(e) {
         const newQty = wine.quantity + qty;
         const updated = await updateWine(wine.id, {
           quantity: newQty,
+          wishlist: false,
           name: wine.name,
           image_url: wine.image_url,
           producer: wine.producer,
@@ -541,6 +553,16 @@ function handleLibraryView(e) {
             <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
             <div class="menu-backdrop" on:click={() => showMenu = false}></div>
             <div class="menu-dropdown">
+              {#if $isAdmin}
+              <button class="menu-item" on:click={() => { showLinks = true; showMenu = false; }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                </svg>
+                {$t('links_menu')}
+              </button>
+              <div class="menu-divider"></div>
+              {/if}
               <div class="menu-section-label">{$t('menu_settings')}</div>
               <button class="menu-item" on:click={() => { showExport = true; showMenu = false; }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -775,6 +797,11 @@ function handleLibraryView(e) {
   <!-- Quick-Add (FAB "+" button) -->
   {#if quickAddWine}
     <InventoryQuickAdd wine={quickAddWine} isNew={true} fromLibrary={false} on:confirm={handleDirectQuickAdd} on:cancel={() => quickAddWine = null} />
+  {/if}
+
+  <!-- Add from links -->
+  {#if showLinks}
+    <AddFromLinksPanel {wines} mode={filterWish ? 'wishlist' : 'cellar'} on:close={() => showLinks = false} on:done={handleLinksDone} />
   {/if}
 
   <!-- Changelog -->

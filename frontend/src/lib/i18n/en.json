@@ -493,5 +493,31 @@
   "modal_field_target_price": "Target price (€)",
 
   "count_bottle": "bottle",
-  "count_bottles": "bottles"
+  "count_bottles": "bottles",
+
+  "links_menu": "Add from links",
+  "links_title_cellar": "Add bottles from links",
+  "links_title_wishlist": "Add wishes from links",
+  "links_close": "Close",
+  "links_mode": "Add to",
+  "links_mode_cellar": "Cellar",
+  "links_mode_wishlist": "Wishlist",
+  "links_intro": "Paste product links, one per line or a whole order or cart page text: every https link is read with \"fill from link\". A bottle you already have (same EAN or link) gets the bottles added instead of a duplicate; a wished bottle leaves the wishlist.",
+  "links_found": "{n} link(s) found",
+  "links_read": "Read {n} page(s)",
+  "links_reading": "Reading…",
+  "links_error": "Could not read this page",
+  "links_include": "Include",
+  "links_new": "New wine",
+  "links_known_add_stock": "Already in the cellar ({n}): bottles are added to it",
+  "links_wish_bought": "On your wishlist: marked as bought",
+  "links_known_add_wish": "Already known: added to the wishlist",
+  "links_already_wished": "Already on the wishlist",
+  "links_qty": "Bottles",
+  "links_target": "Target €",
+  "links_back": "Back",
+  "links_add_cellar": "Add {n} to the cellar",
+  "links_add_wishlist": "Add {n} to the wishlist",
+  "links_toast": "{n} wine(s) added",
+  "links_toast_failed": "{n} failed"
 }

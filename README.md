@@ -25,6 +25,7 @@ A self-hosted wine cellar management app. Track your collection, scan barcodes, 
 
 - **Longer region texts:** each region can carry an extra text and its source link (`extra`, `extra_source` on `PUT /regions/{key}`), shown under "More about this region". `scripts/fetch_leclerc_region_texts.py` reads the region paragraph e.leclerc shows on its wine pages (about 20 polite requests, texts written outside the repository) and `scripts/load_region_extra.py` uploads them. Leclerc's Savoie/Jura pages show the Alsace paragraph, so that region is skipped.
 - **Wishlist:** `wishlist` and `target_price` on wines. A wished wine can have 0 bottles: `GET /wines?include_wishlist=true` (main page only) adds those, the default list, kiosk, map, regions and stats still show stock only. The Wishlist chip lists wished wines; "Bought" opens the edit form as a purchase (off the wishlist, one more bottle, today's date, target price as price). Export/import carry both fields.
+- **Add from links** (menu, admin): paste several product links or the text of a whole order or cart; each https link is read with "fill from link", the rows can be reviewed (bottles or target price, include or skip) and are then added to the cellar or the wishlist in one go. `POST /fill-from-url` returns `existing_wine_id` (same EAN, else same link), so a known bottle gets the bottles added instead of a duplicate, and a wished bottle bought this way (or with quick-add / the inventory scan) leaves the wishlist. For e.leclerc pages the producer is taken from names starting with Château, Domaine, Clos…, and an appellation that the shop files under the wrong region (Fronton under Bordeaux) gets the region from `regions_seed.py`.
 - **Title migration:** an app title that is still exactly `KellerLog` (the old default) is renamed to `Wine Cellar` at startup; custom titles are never touched.
 
 ## Changelog convention
@@ -130,14 +131,16 @@ Settings go in `~/.config/wine-cellar-backup.env` (`NAS_USER`, `NAS_HOST`, `REMO
 
 ## Docker Images
 
-Pre-built images are published to GitHub Container Registry on every release:
+Images are published to GitHub Container Registry by CI on every push to `main`:
 
 | Image | Tags |
 |-------|------|
-| `ghcr.io/doleanj/wine-cellar-frontend` | `latest` (stable release), `edge` (main branch) |
-| `ghcr.io/doleanj/wine-cellar-backend` | `latest` (stable release), `edge` (main branch) |
+| `ghcr.io/doleanj/wine-cellar-frontend` | `edge` (latest `main`, what the NAS runs), `sha-<commit>` |
+| `ghcr.io/doleanj/wine-cellar-backend` | `edge` (latest `main`, what the NAS runs), `sha-<commit>` |
 
-Both images are built for `linux/amd64` and `linux/arm64`.
+Each push also creates a `build-…` GitHub pre-release with its notes. `latest` only moves on a tagged GitHub release; the last one is the upstream KellerLog v1.5.0 (July 2026), so use `edge`. Images are built for `linux/amd64` only.
+
+The app version is the newest entry of `frontend/src/lib/changelog.js` (shown in the footer), not `package.json`.
 
 ---
 
@@ -154,7 +157,7 @@ Both images are built for `linux/amd64` and `linux/arm64`.
 ```yaml
 services:
   backend:
-    image: ghcr.io/doleanj/wine-cellar-backend:latest
+    image: ghcr.io/doleanj/wine-cellar-backend:edge
     volumes:
       - ./kellerlog:/app/data
     environment:
@@ -164,7 +167,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/doleanj/wine-cellar-frontend:latest
+    image: ghcr.io/doleanj/wine-cellar-frontend:edge
     ports:
       - "8080:80"
     depends_on:

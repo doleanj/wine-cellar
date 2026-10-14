@@ -235,6 +235,15 @@
           {/if}
         {/if}
 
+        {#if wine.wishlist}
+          <div class="wish-row">
+            <span class="wish-label">🛒 {$t('filter_wishlist')}{wine.target_price != null ? ` · ≤ ${wine.target_price.toFixed(2)} €` : ''}</span>
+            {#if editable}
+              <button type="button" class="btn-bought" on:click={() => dispatch('bought', wine)}>{$t('wish_bought')}</button>
+            {/if}
+          </div>
+        {/if}
+
         <div class="footer-row">
           {#if wine.price}
             <span class="price">{wine.price.toFixed(2)} € <span class="price-label">{$t('detail_per_bottle')}</span></span>
@@ -398,6 +407,13 @@
   .close-btn:hover { background: var(--border); color: var(--text); }
   .edit-btn:hover { background: var(--primary); color: white; }
   .fav-btn.fav-on { color: var(--primary); }
+  .wish-row { display: flex; align-items: center; gap: 10px; margin: 14px 0 4px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
+  .wish-label { font-size: 13px; font-weight: 600; color: var(--primary); }
+  .btn-bought {
+    margin-left: auto; border: 1px solid var(--primary); background: none; color: var(--primary);
+    border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .btn-bought:hover { background: var(--primary); color: #fff; }
   .fav-btn.fav-on:hover { color: white; }
 
   .detail-scroll {

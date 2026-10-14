@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { currentEntry } from '$lib/changelog.js';
-  import { getWines, createWine, updateWine, deleteWine, getStats, lookupBarcode, getDrinkRules, batchUpdateWines, getCustomFields, resolveElabel, getMe, setMyLanguage, getToken } from '$lib/api.js';
+  import { getWines as fetchWines, createWine, updateWine, deleteWine, getStats, lookupBarcode, getDrinkRules, batchUpdateWines, getCustomFields, resolveElabel, getMe, setMyLanguage, getToken } from '$lib/api.js';
   import WineCard from '$lib/components/WineCard.svelte';
   import AddWineModal from '$lib/components/AddWineModal.svelte';
   import WineMap from '$lib/components/WineMap.svelte';
@@ -96,6 +96,13 @@
 
   let filterType = 'all';
   let filterFav = false;
+  let filterWish = false;
+  let wishlistNew = false;   // add form opened from the Wishlist view
+
+  // The main page also loads wished bottles that are not in stock; they only show in the Wishlist view.
+  const getWines = () => fetchWines({ includeWishlist: true });
+  const wishOnly = w => w.wishlist && (w.quantity || 0) <= 0;
+  $: cellarWines = wines.filter(w => !wishOnly(w));
   let searchQuery = '';
   let sortBy = 'date';
   let viewMode = (typeof localStorage !== 'undefined' && localStorage.getItem('kellerlog_view')) || 'poster';
@@ -114,6 +121,7 @@
   $: filteredWines = wines
     .filter(w => filterType === 'all' || w.type === filterType)
     .filter(w => !filterFav || w.favorite)
+    .filter(w => (filterWish ? w.wishlist : !wishOnly(w)))
     .filter(w => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
@@ -132,6 +140,8 @@
       if (sortBy === 'quantity') return b.quantity - a.quantity;
       return new Date(b.added_at) - new Date(a.added_at);
     });
+
+  $: filteredBottles = filteredWines.reduce((n, w) => n + (w.quantity || 0), 0);
 
   async function load() {
     try {
@@ -185,6 +195,8 @@
 
   async function handleDelete(e) {
     const id = e.detail;
+    const target = wines.find(w => w.id === id);
+    if (target && (filterWish || wishOnly(target))) return removeFromWishlist(target);
     if (!confirm($t('confirm_delete'))) return;
     try {
       await updateWine(id, { quantity: 0 });
@@ -213,12 +225,37 @@
     }
   }
 
+  async function removeFromWishlist(wine) {
+    if (!confirm($t('wish_confirm_remove'))) return;
+    try {
+      await updateWine(wine.id, { wishlist: false });
+      wines = await getWines();
+      showToast($t('wish_removed'));
+    } catch (err) {
+      handleApiError(err);
+    }
+  }
+
+  // "Bought": open the edit form as a purchase (off the wishlist, one more bottle, today's date, target price as price)
+  function handleBought(e) {
+    const w = e.detail;
+    selectedWine = null;
+    editingWine = {
+      ...w, wishlist: false,
+      quantity: (w.quantity || 0) + 1,
+      purchase_date: new Date().toISOString().slice(0, 10),
+      price: w.price ?? w.target_price,
+    };
+    showModal = true;
+  }
+
   function handleEdit(e) {
     editingWine = e.detail;
     showModal = true;
   }
 
   function openAdd() {
+    if (filterWish) { wishlistNew = true; editingWine = null; showModal = true; return; }
     quickAddWine = { name: '', type: 'red', quantity: 0, image_url: '', producer: '', vintage: null, price: null };
   }
 
@@ -251,6 +288,7 @@
     editingWine = null;
     libraryPrefill = null;
     modalHideStock = false;
+    wishlistNew = false;
   }
 
 function handleLibraryView(e) {
@@ -589,6 +627,12 @@ function handleLibraryView(e) {
           </svg>
           {$t('filter_favorites')}
         </button>
+        <button class="tab fav-tab" class:active={filterWish} aria-pressed={filterWish} on:click={() => filterWish = !filterWish}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/>
+          </svg>
+          {$t('filter_wishlist')}
+        </button>
       </div>
 
       <div class="control-right">
@@ -656,7 +700,10 @@ function handleLibraryView(e) {
     {:else if filteredWines.length === 0}
       <div class="empty">
         <div class="empty-icon">🍷</div>
-        {#if wines.length === 0}
+        {#if filterWish && !searchQuery.trim() && filterType === 'all' && !filterFav}
+          <h2>{$t('wish_empty_title')}</h2>
+          <p>{$t('wish_empty_sub')}</p>
+        {:else if wines.length === 0}
           <h2>{$t('empty_no_wines_title')}</h2>
           <p>{$t('empty_no_wines_sub')}</p>
         {:else}
@@ -665,10 +712,10 @@ function handleLibraryView(e) {
         {/if}
       </div>
     {:else}
-      <p class="result-count">{filteredWines.length} {filteredWines.length !== 1 ? $t('count_plural') : $t('count_singular')}</p>
+      <p class="result-count">{filteredWines.length} {filteredWines.length !== 1 ? $t('count_plural') : $t('count_singular')}, {filteredBottles} {filteredBottles !== 1 ? $t('count_bottles') : $t('count_bottle')}</p>
       <div class="wine-grid" class:view-thumb={viewMode === 'thumb'} class:view-list={viewMode === 'list'}>
         {#each filteredWines as wine (wine.id)}
-          <WineCard {wine} {inventoryMode} view={viewMode} readonly={!$isAdmin || inventoryMode} showDrinkWindow={$branding.showDrinkWindow} {drinkRules} selectable={selectionMode} selected={selectedIds.has(wine.id)} on:toggle={(e) => toggleSelection(e.detail)} on:select={(e) => selectedWine = e.detail} on:edit={handleEdit} on:favorite={handleFavorite} on:delete={handleDelete} on:quantityChange={handleQuantityChange} />
+          <WineCard {wine} {inventoryMode} view={viewMode} readonly={!$isAdmin || inventoryMode} showDrinkWindow={$branding.showDrinkWindow} {drinkRules} selectable={selectionMode} selected={selectedIds.has(wine.id)} on:toggle={(e) => toggleSelection(e.detail)} on:select={(e) => selectedWine = e.detail} on:edit={handleEdit} on:favorite={handleFavorite} on:delete={handleDelete} on:quantityChange={handleQuantityChange} wishlistView={filterWish} on:bought={handleBought} />
         {/each}
       </div>
     {/if}
@@ -737,17 +784,17 @@ function handleLibraryView(e) {
 
   <!-- Map -->
   {#if showMap}
-    <WineMap {wines} on:close={() => showMap = false} on:selectWine={(e) => { editingWine = e.detail; modalHideStock = true; showModal = true; }} />
+    <WineMap wines={cellarWines} on:close={() => showMap = false} on:selectWine={(e) => { editingWine = e.detail; modalHideStock = true; showModal = true; }} />
   {/if}
 
   <!-- Pairing finder -->
   {#if showPairing}
-    <PairingPanel {wines} {drinkRules} on:close={() => showPairing = false} on:selectWine={(e) => { selectedWine = e.detail; }} />
+    <PairingPanel wines={cellarWines} {drinkRules} on:close={() => showPairing = false} on:selectWine={(e) => { selectedWine = e.detail; }} />
   {/if}
 
   <!-- Regions -->
   {#if showRegions}
-    <RegionsPanel {wines} on:close={() => showRegions = false} on:selectWine={(e) => { selectedWine = e.detail; }} />
+    <RegionsPanel wines={cellarWines} on:close={() => showRegions = false} on:selectWine={(e) => { selectedWine = e.detail; }} />
   {/if}
 
   <!-- Export/Import -->
@@ -790,13 +837,14 @@ function handleLibraryView(e) {
     <WineDetail wine={selectedWine} editable={true} {customFields}
       on:close={() => selectedWine = null}
       on:favorite={handleFavorite}
+      on:bought={handleBought}
       on:edit={(e) => { selectedWine = null; editingWine = e.detail; showModal = true; }}
     />
   {/if}
 
   <!-- Edit/add form: rendered after the map, regions and detail panels so it stacks on top of them -->
   {#if showModal}
-    <AddWineModal wine={editingWine} prefill={libraryPrefill} hideStock={modalHideStock || inventoryMode} {customFields} on:save={handleSave} on:close={closeModal} />
+    <AddWineModal wine={editingWine} prefill={libraryPrefill} {wishlistNew} hideStock={modalHideStock || inventoryMode} {customFields} on:save={handleSave} on:close={closeModal} />
   {/if}
 
   <!-- Library -->

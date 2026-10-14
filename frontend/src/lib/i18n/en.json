@@ -478,5 +478,17 @@
   "changelog_close": "Close",
   "changelog_current": "Current",
   "changelog_planned": "Planned",
-  "changelog_in_progress": "In progress"
+  "changelog_in_progress": "In progress",
+
+  "filter_wishlist": "Wishlist",
+  "wish_bought": "Bought",
+  "wish_in_stock": "{n} in stock",
+  "wish_target_title": "Buy at or below this price",
+  "wish_confirm_remove": "Remove this wine from the wishlist?",
+  "wish_removed": "Removed from the wishlist",
+  "wish_empty_title": "Your wishlist is empty",
+  "wish_empty_sub": "Add a wine you want to buy with +, or turn on \"On my wishlist\" when editing a wine.",
+  "modal_field_wishlist": "On my wishlist",
+  "modal_field_wishlist_desc": "A wine to buy; it can have 0 bottles in stock",
+  "modal_field_target_price": "Target price (€)"
 }

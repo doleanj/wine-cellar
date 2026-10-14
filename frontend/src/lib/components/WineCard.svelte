@@ -11,6 +11,7 @@
   export let drinkRules = [];
   export let selectable = false;
   export let selected = false;
+  export let wishlistView = false;
 
   $: drinkStatus = (() => {
     if (!showDrinkWindow || !wine.vintage || !wine.type || (!drinkRules.length && !wine.keep_until_years)) return null;
@@ -117,6 +118,9 @@
       </div>
     {/if}
     <span class="badge type-{wine.type}">{typeLabel[wine.type] || wine.type}</span>
+    {#if wine.wishlist && !wishlistView}
+      <span class="badge wish-badge" title={$t('filter_wishlist')}>🛒</span>
+    {/if}
     {#if wine.by_glass}
       <span class="badge glass-badge">
         {$t('kiosk_by_glass')}{wine.price_per_glass ? ` · ${wine.price_per_glass.toFixed(2)} €` : ''}
@@ -173,7 +177,19 @@
       </div>
     {/if}
 
-    {#if inventoryMode}
+    {#if wishlistView && !inventoryMode}
+      <div class="card-footer wish-footer">
+        {#if wine.target_price != null}
+          <span class="target" title={$t('wish_target_title')}>≤ {wine.target_price.toFixed(2)} €</span>
+        {/if}
+        {#if wine.quantity > 0}
+          <span class="price">{$t('wish_in_stock').replace('{n}', wine.quantity)}</span>
+        {/if}
+        {#if !readonly}
+          <button type="button" class="btn-bought" on:click|stopPropagation={() => dispatch('bought', wine)}>{$t('wish_bought')}</button>
+        {/if}
+      </div>
+    {:else if inventoryMode}
       <div class="inv-strip">
         <button class="inv-btn inv-minus" on:click={handleDecrement}>−</button>
         <span class="inv-qty" class:zero={localQty === 0}>{localQty}</span>
@@ -337,6 +353,13 @@
   .type-sparkling { background: var(--sparkling); }
   .type-dessert { background: var(--dessert); }
   .type-other  { background: var(--other); }
+  .wish-badge {
+    top: auto;
+    right: auto;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(255, 255, 255, 0.92);
+  }
   .glass-badge {
     top: auto;
     bottom: 8px;
@@ -437,6 +460,13 @@
     font-weight: 600;
     color: var(--primary);
   }
+  .wish-footer { flex-wrap: wrap; gap: 6px; }
+  .target { font-size: 13px; font-weight: 600; color: var(--primary); }
+  .btn-bought {
+    margin-left: auto; border: 1px solid var(--primary); background: none; color: var(--primary);
+    border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .btn-bought:hover { background: var(--primary); color: #fff; }
   .price, .alcohol {
     font-size: 12px;
     color: var(--text-muted);

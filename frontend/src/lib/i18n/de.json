@@ -478,5 +478,17 @@
   "changelog_close": "Schließen",
   "changelog_current": "Aktuell",
   "changelog_planned": "Geplant",
-  "changelog_in_progress": "In Arbeit"
+  "changelog_in_progress": "In Arbeit",
+
+  "filter_wishlist": "Wunschliste",
+  "wish_bought": "Gekauft",
+  "wish_in_stock": "{n} auf Lager",
+  "wish_target_title": "Zu diesem Preis oder günstiger kaufen",
+  "wish_confirm_remove": "Diesen Wein von der Wunschliste entfernen?",
+  "wish_removed": "Von der Wunschliste entfernt",
+  "wish_empty_title": "Deine Wunschliste ist leer",
+  "wish_empty_sub": "Füge mit + einen Wein hinzu, den du kaufen möchtest, oder aktiviere „Auf meiner Wunschliste“ beim Bearbeiten.",
+  "modal_field_wishlist": "Auf meiner Wunschliste",
+  "modal_field_wishlist_desc": "Ein Wein zum Kaufen; kann 0 Flaschen auf Lager haben",
+  "modal_field_target_price": "Zielpreis (€)"
 }

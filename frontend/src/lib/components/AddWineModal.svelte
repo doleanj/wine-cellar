@@ -24,6 +24,7 @@
   export let wine = null;
   export let prefill = null;
   export let hideStock = false;
+  export let wishlistNew = false;   // new wine added from the Wishlist view
   export let customFields = [];
 
   const dispatch = createEventDispatcher();
@@ -37,7 +38,8 @@
     location: '', url: '', profile_fruit: null, profile_personality: null, sweetness: '',
     elabel_url: '', ingredients: '', sulphites: false, energy_kcal_100ml: null,
     sugar_g_100ml: null, carbs_g_100ml: null, bottled_by: '', volume_ml: null,
-    keep_until_years: null, serving_temp: null, purchase_date: '', tasting: ''
+    keep_until_years: null, serving_temp: null, purchase_date: '', tasting: '',
+    wishlist: false, target_price: null
   };
 
   function initForm() {
@@ -46,6 +48,7 @@
       const { id, saved_at, updated_at, source, ...rest } = prefill;
       return { ...emptyForm, ...rest, quantity: 1 };
     }
+    if (wishlistNew) return { ...emptyForm, wishlist: true, quantity: 0 };
     return { ...emptyForm };
   }
 
@@ -144,8 +147,10 @@
         ...form,
         vintage: form.vintage ? parseInt(form.vintage) : null,
         alcohol: form.alcohol ? parseFloat(form.alcohol) : null,
-        quantity: parseInt(form.quantity) || 1,
+        // 0 bottles is only kept for a wine on the wishlist; otherwise an empty or 0 quantity means 1
+        quantity: parseInt(form.quantity) || (form.wishlist ? 0 : 1),
         price: form.price ? parseFloat(form.price) : null,
+        target_price: form.wishlist && form.target_price !== '' && form.target_price != null ? parseFloat(form.target_price) : null,
         custom_values: customValues,
       });
     } finally {
@@ -528,6 +533,24 @@
               </div>
 
               <div class="field-divider"></div>
+
+              <div class="field span-2">
+                <label class="toggle-row">
+                  <div>
+                    <div class="toggle-label">{$t('modal_field_wishlist')}</div>
+                    <div class="toggle-desc">{$t('modal_field_wishlist_desc')}</div>
+                  </div>
+                  <input type="checkbox" bind:checked={form.wishlist} class="toggle-input" />
+                  <span class="toggle-track" class:on={form.wishlist}><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+
+              {#if form.wishlist}
+              <div class="field">
+                <label for="target_price">{$t('modal_field_target_price')}</label>
+                <input id="target_price" type="number" bind:value={form.target_price} placeholder="0.00" step="0.01" min="0" />
+              </div>
+              {/if}
 
               {#if !hideStock}
               <div class="field">

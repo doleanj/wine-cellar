@@ -4,6 +4,14 @@
 // 'planned' or 'in-progress' to track something that spans several PRs; drop it once shipped.
 export const CHANGELOG = [
   {
+    version: '2026-10-14.2',
+    items: [
+      'Wishlist: mark wines you want to buy, with a target price; they can have 0 bottles and stay out of the cellar, map, regions and stats',
+      'Wishlist filter chip; + in that view adds a wish directly, "Bought" turns a wish into stock (one more bottle, today\'s date, target price as price)',
+      'A 🛒 badge marks cellar wines that are also on the wishlist'
+    ]
+  },
+  {
     version: '2026-10-14',
     items: ['Footer shows the current version and build; click it to open this changelog']
   },

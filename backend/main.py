@@ -214,6 +214,9 @@ class WineLibrary(Base):
     serving_temp = Column(Integer, nullable=True)          # °C
     purchase_date = Column(String, default="")             # YYYY-MM-DD or empty
     tasting = Column(String, default="")                   # eye / nose / palate
+    # Wishlist: a wine to buy (often quantity 0, so it stays out of the cellar views)
+    wishlist = Column(Boolean, default=False)
+    target_price = Column(Float, nullable=True)            # buy at or below this price
     saved_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
     created_by = Column(String, default="")
@@ -357,6 +360,8 @@ def _migrate_library_columns():
         ("serving_temp",        "INTEGER"),
         ("purchase_date",       "TEXT DEFAULT ''"),
         ("tasting",             "TEXT DEFAULT ''"),
+        ("wishlist",            "INTEGER DEFAULT 0"),
+        ("target_price",        "REAL"),
     ]
     with engine.connect() as conn:
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(wine_library)"))}
@@ -745,6 +750,8 @@ class WineCreate(BaseModel):
     serving_temp: Optional[int] = None
     purchase_date: IsoDate = ""
     tasting: str = ""
+    wishlist: bool = False
+    target_price: Optional[float] = Field(None, ge=0)
     by_glass: bool = False
     price_per_glass: Optional[float] = None
     location: str = ""
@@ -788,6 +795,8 @@ class WineUpdate(BaseModel):
     serving_temp: Optional[int] = None
     purchase_date: Optional[IsoDate] = None
     tasting: Optional[str] = None
+    wishlist: Optional[bool] = None
+    target_price: Optional[float] = Field(None, ge=0)
     by_glass: Optional[bool] = None
     price_per_glass: Optional[float] = None
     location: Optional[str] = None
@@ -832,6 +841,8 @@ class WineResponse(BaseModel):
     serving_temp: Optional[int] = None
     purchase_date: str = ""
     tasting: str = ""
+    wishlist: bool = False
+    target_price: Optional[float] = None
     by_glass: bool
     price_per_glass: Optional[float]
     location: str
@@ -1306,12 +1317,15 @@ def delete_custom_field(field_id: int, db: Session = Depends(get_db), _=Depends(
 # ── Wine CRUD (unified library) ───────────────────────────────────────────────
 
 @app.get("/wines", response_model=List[WineResponse])
-def get_wines(favorite: Optional[bool] = Query(None), db: Session = Depends(get_db), _=Depends(require_login_or_kiosk)):
+def get_wines(favorite: Optional[bool] = Query(None), include_wishlist: bool = Query(False),
+              db: Session = Depends(get_db), _=Depends(require_login_or_kiosk)):
     settings = db.get(AppSettings, 1)
     show_zero = settings and settings.show_zero_quantity_in_dashboard
     query = db.query(WineLibrary)
     if not show_zero:
-        query = query.filter(WineLibrary.quantity > 0)
+        # include_wishlist (main page only) adds wished bottles that are not in stock
+        query = query.filter(or_(WineLibrary.quantity > 0, WineLibrary.wishlist == True) if include_wishlist  # noqa: E712
+                             else WineLibrary.quantity > 0)
     if favorite is not None:
         query = query.filter(WineLibrary.favorite == favorite)
     wines = query.order_by(WineLibrary.saved_at.desc()).all()
@@ -1384,7 +1398,7 @@ def get_wine(wine_id: int, db: Session = Depends(get_db), _=Depends(require_logi
         raise HTTPException(status_code=404, detail="Wein nicht gefunden")
     settings = db.get(AppSettings, 1)
     show_zero = settings and settings.show_zero_quantity_in_dashboard
-    if not show_zero and wine.quantity <= 0:
+    if not show_zero and wine.quantity <= 0 and not wine.wishlist:
         raise HTTPException(status_code=404, detail="Wein nicht gefunden")
     cvs = {r.field_key: r.value for r in db.query(WineCustomValue).filter(WineCustomValue.wine_id == wine_id).all()}
     return _wine_to_dict(wine, cvs)
@@ -1687,7 +1701,7 @@ _EXPORT_FIELDS = [
     'url', 'profile_fruit', 'profile_personality', 'sweetness', 'favorite',
     'elabel_url', 'ingredients', 'sulphites', 'energy_kcal_100ml', 'sugar_g_100ml',
     'carbs_g_100ml', 'bottled_by', 'volume_ml',
-    'keep_until_years', 'serving_temp', 'purchase_date', 'tasting',
+    'keep_until_years', 'serving_temp', 'purchase_date', 'tasting', 'wishlist', 'target_price',
 ]
 
 
@@ -1736,6 +1750,8 @@ async def import_wines(file: UploadFile = File(...), db: Session = Depends(get_d
             except (TypeError, ValueError):
                 return None
             return n if n is not None and 1 <= n <= 5 else None
+        wished = str(row.get('wishlist', '')).strip().lower() in ('1', 'true', 'yes')
+        qty = _int(row.get('quantity'))
         return WineLibrary(
             name=row.get('name', '').strip(),
             producer=row.get('producer', '') or '',
@@ -1744,7 +1760,7 @@ async def import_wines(file: UploadFile = File(...), db: Session = Depends(get_d
             grape=row.get('grape', '') or '',
             region=row.get('region', '') or '',
             country=row.get('country', '') or '',
-            quantity=int(row.get('quantity') or 1),
+            quantity=qty if qty is not None and (qty > 0 or wished) else 1,
             price=_float(row.get('price')),
             alcohol=_float(row.get('alcohol')),
             rating=_int(row.get('rating')),
@@ -1761,6 +1777,8 @@ async def import_wines(file: UploadFile = File(...), db: Session = Depends(get_d
             profile_personality=_score(row.get('profile_personality')),
             sweetness=row.get('sweetness') if row.get('sweetness') in ('sec', 'doux', 'moelleux') else '',
             favorite=str(row.get('favorite', '')).strip().lower() in ('1', 'true', 'yes'),
+            wishlist=wished,
+            target_price=_float(row.get('target_price')),
         )
 
     fname = (file.filename or '').lower()

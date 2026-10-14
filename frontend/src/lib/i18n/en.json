@@ -471,5 +471,12 @@
   "fill_http_hint": "Only https links are supported.",
 
   "region_more": "More about this region",
-  "region_source": "Source"
+  "region_source": "Source",
+
+  "changelog_title": "Changelog",
+  "changelog_releases": "GitHub releases",
+  "changelog_close": "Close",
+  "changelog_current": "Current",
+  "changelog_planned": "Planned",
+  "changelog_in_progress": "In progress"
 }

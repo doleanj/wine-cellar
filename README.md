@@ -26,6 +26,10 @@ A self-hosted wine cellar management app. Track your collection, scan barcodes, 
 - **Longer region texts:** each region can carry an extra text and its source link (`extra`, `extra_source` on `PUT /regions/{key}`), shown under "More about this region". `scripts/fetch_leclerc_region_texts.py` reads the region paragraph e.leclerc shows on its wine pages (about 20 polite requests, texts written outside the repository) and `scripts/load_region_extra.py` uploads them. Leclerc's Savoie/Jura pages show the Alsace paragraph, so that region is skipped.
 - **Title migration:** an app title that is still exactly `KellerLog` (the old default) is renamed to `Wine Cellar` at startup; custom titles are never touched.
 
+## Changelog convention
+
+The footer shows the newest entry of `frontend/src/lib/changelog.js` plus the running build (commit and date, baked into the frontend image by CI as `APP_SHA` / `APP_BUILD_DATE`); clicking the version opens the changelog. Every PR that changes behaviour adds an entry at the top of that file in the same PR. The version is the release date (`2026-10-14`, then `.2`, `.3` for more the same day); optional status `planned` / `in-progress` for work spread over several PRs.
+
 ## Off-NAS backup (pull from a Mac)
 
 The app already writes consistent database copies (`data/backups/wines-<date>-startup|daily|manual.db`, see "Database backups"). To survive a NAS disk failure you also need a copy on **another device**:

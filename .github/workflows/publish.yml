@@ -68,6 +68,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
+          build-args: |
+            APP_SHA=${{ github.sha }}
+            APP_BUILD_DATE=${{ github.event.head_commit.timestamp || github.event.release.published_at }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 

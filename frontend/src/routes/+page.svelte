@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { version } from '../../package.json';
+  import { currentEntry } from '$lib/changelog.js';
   import { getWines, createWine, updateWine, deleteWine, getStats, lookupBarcode, getDrinkRules, batchUpdateWines, getCustomFields, resolveElabel, getMe, setMyLanguage, getToken } from '$lib/api.js';
   import WineCard from '$lib/components/WineCard.svelte';
   import AddWineModal from '$lib/components/AddWineModal.svelte';
@@ -15,6 +15,7 @@
   import DrinkRulesPanel from '$lib/components/DrinkRulesPanel.svelte';
   import BatchEditPanel from '$lib/components/BatchEditPanel.svelte';
   import CustomFieldsPanel from '$lib/components/CustomFieldsPanel.svelte';
+  import ChangelogModal from '$lib/components/ChangelogModal.svelte';
   import WineDetail from '$lib/components/WineDetail.svelte';
   import { isElabelUrl } from '$lib/elabel.js';
   import BarcodeScanner from '$lib/components/BarcodeScanner.svelte';
@@ -39,6 +40,12 @@
   let showRegions = false;
   let showPairing = false;
   let showLibrary = false;
+  let showChangelog = false;
+
+  // Build baked in by CI (VITE_APP_SHA / VITE_APP_BUILD_DATE); empty when run from source.
+  const buildSha = import.meta.env.VITE_APP_SHA || '';
+  const buildWhen = new Date(import.meta.env.VITE_APP_BUILD_DATE || '');
+  const buildDate = isNaN(buildWhen) ? '' : buildWhen.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   let showExport = false;
   let showBranding = false;
   let showUsers = false;
@@ -672,7 +679,10 @@ function handleLibraryView(e) {
     {#if import.meta.env.VITE_DEV_BUILD === 'true'}
       <span class="footer-version dev-badge">dev</span>
     {:else}
-      <a class="footer-version" href="https://github.com/doleanj/wine-cellar/releases" target="_blank" rel="noopener">v{version}</a>
+      <button type="button" class="footer-version" title={$t('changelog_title')} on:click={() => showChangelog = true}>v{currentEntry?.version ?? ''}</button>
+    {/if}
+    {#if buildSha}
+      <span class="footer-build">· build <a href="https://github.com/doleanj/wine-cellar/commit/{buildSha}" target="_blank" rel="noopener">{buildSha.slice(0, 7)}</a>{buildDate ? ` · ${buildDate}` : ''}</span>
     {/if}
   </footer>
 
@@ -718,6 +728,11 @@ function handleLibraryView(e) {
   <!-- Quick-Add (FAB "+" button) -->
   {#if quickAddWine}
     <InventoryQuickAdd wine={quickAddWine} isNew={true} fromLibrary={false} on:confirm={handleDirectQuickAdd} on:cancel={() => quickAddWine = null} />
+  {/if}
+
+  <!-- Changelog -->
+  {#if showChangelog}
+    <ChangelogModal on:close={() => showChangelog = false} />
   {/if}
 
   <!-- Map -->
@@ -1230,7 +1245,21 @@ function handleLibraryView(e) {
     color: inherit;
     text-decoration: none;
     transition: opacity 0.15s;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    letter-spacing: inherit;
+    cursor: pointer;
   }
+  button.footer-version { text-decoration: underline; text-underline-offset: 2px; }
+  .footer-build {
+    margin-left: 6px;
+    opacity: 0.5;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .footer-build a { color: inherit; }
   .dev-badge {
     font-size: 10px;
     font-weight: 700;

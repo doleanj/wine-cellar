@@ -9,7 +9,8 @@ export const CHANGELOG = [
       'Wishlist: mark wines you want to buy, with a target price; they can have 0 bottles and stay out of the cellar, map, regions and stats',
       'Wishlist filter chip; + in that view adds a wish directly, "Bought" turns a wish into stock (one more bottle, today\'s date, target price as price)',
       'A 🛒 badge marks cellar wines that are also on the wishlist',
-      'The count under the filters also shows the number of bottles'
+      'The count under the filters also shows the number of bottles',
+      'Browsers no longer offer to translate the app (it declared German while showing English); use the app\'s own language setting'
     ]
   },
   {

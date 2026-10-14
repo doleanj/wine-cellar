@@ -490,5 +490,8 @@
   "wish_empty_sub": "Add a wine you want to buy with +, or turn on \"On my wishlist\" when editing a wine.",
   "modal_field_wishlist": "On my wishlist",
   "modal_field_wishlist_desc": "A wine to buy; it can have 0 bottles in stock",
-  "modal_field_target_price": "Target price (€)"
+  "modal_field_target_price": "Target price (€)",
+
+  "count_bottle": "bottle",
+  "count_bottles": "bottles"
 }

@@ -141,6 +141,8 @@
       return new Date(b.added_at) - new Date(a.added_at);
     });
 
+  $: filteredBottles = filteredWines.reduce((n, w) => n + (w.quantity || 0), 0);
+
   async function load() {
     try {
       [wines, stats, drinkRules, customFields] = await Promise.all([getWines(), getStats(), getDrinkRules(), getCustomFields()]);
@@ -710,7 +712,7 @@ function handleLibraryView(e) {
         {/if}
       </div>
     {:else}
-      <p class="result-count">{filteredWines.length} {filteredWines.length !== 1 ? $t('count_plural') : $t('count_singular')}</p>
+      <p class="result-count">{filteredWines.length} {filteredWines.length !== 1 ? $t('count_plural') : $t('count_singular')}, {filteredBottles} {filteredBottles !== 1 ? $t('count_bottles') : $t('count_bottle')}</p>
       <div class="wine-grid" class:view-thumb={viewMode === 'thumb'} class:view-list={viewMode === 'list'}>
         {#each filteredWines as wine (wine.id)}
           <WineCard {wine} {inventoryMode} view={viewMode} readonly={!$isAdmin || inventoryMode} showDrinkWindow={$branding.showDrinkWindow} {drinkRules} selectable={selectionMode} selected={selectedIds.has(wine.id)} on:toggle={(e) => toggleSelection(e.detail)} on:select={(e) => selectedWine = e.detail} on:edit={handleEdit} on:favorite={handleFavorite} on:delete={handleDelete} on:quantityChange={handleQuantityChange} wishlistView={filterWish} on:bought={handleBought} />

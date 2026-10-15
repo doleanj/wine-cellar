@@ -17,6 +17,7 @@ set -euo pipefail
 [ $# -ge 3 ] || { sed -n '2,13p' "$0"; exit 1; }
 OUT="$1"; DAYS="$2"; shift 2
 BASE="${BASENAME:-server}"   # output file base name, e.g. BASENAME=nashome-lan
+CA_NAME="${CA_NAME:-NASHOME LAN CA}"   # CN of the CA, only used when the CA is created (a new name = a new CA that devices must trust again)
 [ "$DAYS" -le 825 ] || { echo "days must be <= 825" >&2; exit 1; }
 mkdir -p "$OUT"; chmod 700 "$OUT"; cd "$OUT"
 
@@ -30,7 +31,7 @@ if [ ! -f ca.key ]; then
   openssl genrsa -out ca.key 4096 2>/dev/null; chmod 600 ca.key
   {
     echo "[req]"; echo "distinguished_name=dn"; echo "x509_extensions=v3_ca"; echo "prompt=no"
-    echo "[dn]"; echo "CN=Wine Cellar LAN CA"; echo "O=Home LAN"
+    echo "[dn]"; echo "CN=$CA_NAME"; echo "O=Home LAN"
     echo "[v3_ca]"; echo "basicConstraints=critical,CA:true,pathlen:0"; echo "keyUsage=critical,keyCertSign,cRLSign"
     echo "subjectKeyIdentifier=hash"
     echo "nameConstraints=critical,@nc"; echo "[nc]"

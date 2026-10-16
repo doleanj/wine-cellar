@@ -94,6 +94,9 @@
   "toast_error_search": "Fehler beim Suchen",
   "toast_unauthorized": "Ungültiger Admin-Key — bitte im Menü eintragen",
 
+  "confirm_delete_forever": "Diesen Wein endgültig löschen? Er verschwindet auch aus der Ansicht „Vergangene“.",
+  "confirm_move_past": "Die restlichen Flaschen entfernen? Der Wein wandert zu „Vergangene“.",
+  "toast_moved_past": "Zu „Vergangene“ verschoben",
   "confirm_delete": "Wein wirklich löschen?",
 
   "count_singular": "Wein",

@@ -4,6 +4,12 @@
 // 'planned' or 'in-progress' to track something that spans several PRs; drop it once shipped.
 export const CHANGELOG = [
   {
+    version: '2026-10-16.2',
+    items: [
+      'Deleting a wine from the Past view now deletes it for real (it used to say "deleted" but kept it); deleting a wine in stock says it moves to Past',
+    ],
+  },
+  {
     version: '2026-10-16',
     items: [
       'New "Past" filter: wines with no bottle left stay in the database and can be browsed here, most recently drunk first',

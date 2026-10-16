@@ -95,6 +95,9 @@
   "toast_unauthorized": "Invalid admin key — please enter it in the menu",
 
   "confirm_delete": "Really delete this wine?",
+  "confirm_delete_forever": "Delete this wine for good? It disappears from the Past view too.",
+  "confirm_move_past": "Remove the remaining bottles? The wine moves to Past.",
+  "toast_moved_past": "Moved to Past",
 
   "count_singular": "wine",
   "count_plural": "wines",

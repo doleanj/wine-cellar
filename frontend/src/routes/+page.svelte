@@ -212,12 +212,15 @@
     const id = e.detail;
     const target = wines.find(w => w.id === id);
     if (target && (filterWish || wishOnly(target))) return removeFromWishlist(target);
-    if (!confirm($t('confirm_delete'))) return;
+    // A wine with no bottle left (Past view) is deleted for real; otherwise delete empties the stock and the wine moves to Past.
+    const forever = target && pastOnly(target);
+    if (!confirm($t(forever ? 'confirm_delete_forever' : 'confirm_move_past'))) return;
     try {
-      await updateWine(id, { quantity: 0 });
-      wines = wines.filter(w => w.id !== id);
+      if (forever) await deleteWine(id);
+      else await updateWine(id, { quantity: 0 });
+      wines = forever ? wines.filter(w => w.id !== id) : await getWines();
       stats = await getStats();
-      showToast($t('toast_deleted'));
+      showToast($t(forever ? 'toast_deleted' : 'toast_moved_past'));
     } catch (e) {
       handleApiError(e);
     }

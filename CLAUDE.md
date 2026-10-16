@@ -17,5 +17,6 @@ Current state and next steps: `docs/STATE.md` (read first). House rules: `~/.cla
 ## Release and NAS
 - Push to main → `.github/workflows/publish.yml` builds `ghcr.io/doleanj/wine-cellar-{backend,frontend}:edge` + a pre-release → Watchtower (host port 8095) redeploys.
 - NAS: Container Manager project `wine-cellar`, data in `./data`, portal https://wine-cellar.nashome.
+- Python scripts hitting https://wine-cellar.nashome (e.g. `scripts/add_wines.py`) need `--cafile ~/workspace/nas-infra-assets/tls/ca.crt` (NASHOME LAN CA); Python ignores the macOS keychain. After a push the app answers 502 for ~2 min while Watchtower redeploys.
 - Watchtower → Chat notifications for wine-cellar are deliberately off; don't propose them unprompted.
 - Off-NAS backup: `scripts/backup_pull_from_nas.sh` + `install_backup_agent.sh` are built but not running; backups for all projects are parked for a dedicated review.

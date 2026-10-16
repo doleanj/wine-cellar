@@ -6,12 +6,15 @@ country, alcohol, quantity, price, barcode, description, notes, pairings, url, p
 profile_personality, sweetness ...). The extra key "image_source_url" (https) makes the server fetch
 the photo and store it locally. A wine whose name and producer already exist is skipped.
 
-    KELLERLOG_ADMIN_PASSWORD=... python3 scripts/add_wines.py http://wine-cellar.nashome wines.json [--dry-run]
+    KELLERLOG_ADMIN_PASSWORD=... python3 scripts/add_wines.py https://wine-cellar.nashome wines.json [--dry-run] [--cafile ca.crt]
 
 Credentials come from the environment (or ./.env for the dev stack), never from the command line.
+The NAS certificate is signed by the home LAN CA (see make_lan_cert.sh), which Python does not read from the
+macOS keychain: pass that CA's public ca.crt with --cafile or KELLERLOG_CA_FILE.
 """
 import json
 import os
+import ssl
 import sys
 import urllib.error
 import urllib.request
@@ -27,19 +30,33 @@ def load_env_file():
                 os.environ.setdefault(k.strip(), v.strip())
 
 
+SSL_CONTEXT = None
+
+
 def call(method, url, token=None, payload=None):
     headers = {"Content-Type": "application/json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
     data = json.dumps(payload).encode() if payload is not None else None
     req = urllib.request.Request(url, data=data, method=method, headers=headers)
-    with urllib.request.urlopen(req, timeout=60) as r:
+    with urllib.request.urlopen(req, timeout=60, context=SSL_CONTEXT) as r:
         return json.loads(r.read().decode())
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    dry = "--dry-run" in sys.argv
+    global SSL_CONTEXT
+    argv = sys.argv[1:]
+    cafile = os.environ.get("KELLERLOG_CA_FILE")
+    if "--cafile" in argv:
+        i = argv.index("--cafile")
+        if i + 1 >= len(argv):
+            sys.exit("--cafile needs a path")
+        cafile = argv[i + 1]
+        del argv[i:i + 2]
+    if cafile:
+        SSL_CONTEXT = ssl.create_default_context(cafile=cafile)
+    args = [a for a in argv if not a.startswith("--")]
+    dry = "--dry-run" in argv
     if len(args) != 2:
         sys.exit(__doc__)
     base, path = args[0].rstrip("/"), Path(args[1])

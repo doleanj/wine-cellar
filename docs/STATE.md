@@ -13,9 +13,7 @@
 - After the freeze: daily price check of wishlist links with the app's own shop parsers, alert through the Chat bridge. Re-assess first: Groly step C (price watch) is on hold, and both should share one price-watch service.
 
 ## Waiting on the user
-- "Bourgogne Gamay Noir" (Bonot Père & Fils 2024, stock 0, in Past): the shop is Lidl. Paste the Lidl product URL (not the gv9l.st4.ch short link, which the browser refused) and use "fill from link", or type the fields by hand.
-- Drop the leftover stash: `git stash drop` (it only holds a `package-lock.json` version bump).
-- Close the leftover Chrome tabs from the earlier browser session.
+- Nothing. ("Bourgogne Gamay Noir" stays without data on purpose; leftover stash and Chrome tabs cleaned up 2026-10-16.)
 
 ## Open decisions
 - Off-NAS backup: parked for the cross-project backup review (Toodledo 658941367 has the current script's details).

@@ -143,16 +143,20 @@
     error = '';
     saving = true;
     try {
-      dispatch('save', {
+      const payload = {
         ...form,
         vintage: form.vintage ? parseInt(form.vintage) : null,
         alcohol: form.alcohol ? parseFloat(form.alcohol) : null,
         // 0 bottles is only kept for a wine on the wishlist; otherwise an empty or 0 quantity means 1
-        quantity: parseInt(form.quantity) || (form.wishlist ? 0 : 1),
+        // a wine already at 0 (Past view) stays at 0 when only its other fields are edited
+        quantity: parseInt(form.quantity) || (form.wishlist || (wine && !(wine.quantity > 0)) ? 0 : 1),
         price: form.price ? parseFloat(form.price) : null,
         target_price: form.wishlist && form.target_price !== '' && form.target_price != null ? parseFloat(form.target_price) : null,
         custom_values: customValues,
-      });
+      };
+      // untouched date: leave it out so the server still stamps today when the stock goes down
+      if (!wine || form.last_drunk === wine.last_drunk) delete payload.last_drunk;
+      dispatch('save', payload);
     } finally {
       saving = false;
     }
@@ -519,6 +523,12 @@
                 <label for="wine-purchase">{$t('modal_field_purchase_date')}</label>
                 <input id="wine-purchase" type="date" bind:value={form.purchase_date} />
               </div>
+              {#if wine}
+              <div class="field">
+                <label for="wine-last-drunk">{$t('modal_field_last_drunk')}</label>
+                <input id="wine-last-drunk" type="date" bind:value={form.last_drunk} />
+              </div>
+              {/if}
               <div class="field">
                 <label for="wine-keep">{$t('modal_field_keep_until')}</label>
                 <input id="wine-keep" type="number" min="0" max="80" bind:value={form.keep_until_years} />

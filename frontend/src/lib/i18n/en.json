@@ -429,6 +429,7 @@
 
   "action_fill_from_link": "Fill from link",
   "modal_field_purchase_date": "Purchase date",
+  "modal_field_last_drunk": "Last drunk",
   "modal_field_keep_until": "Keep for (years)",
   "modal_field_serving_temp": "Serving temp. (°C)",
   "modal_field_tasting": "Tasting notes",

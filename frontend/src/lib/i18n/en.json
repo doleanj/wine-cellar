@@ -481,6 +481,10 @@
   "changelog_in_progress": "In progress",
 
   "filter_wishlist": "Wishlist",
+  "filter_past": "Past",
+  "past_empty_title": "No past wines yet",
+  "past_empty_sub": "Wines whose last bottle is gone appear here, with the date you last drank one.",
+  "detail_last_drunk": "Last drunk",
   "wish_bought": "Bought",
   "wish_in_stock": "{n} in stock",
   "wish_target_title": "Buy at or below this price",

@@ -3,6 +3,7 @@ import csv
 import io
 import ipaddress
 import json
+import re
 import os
 import secrets
 import socket
@@ -217,6 +218,7 @@ class WineLibrary(Base):
     # Wishlist: a wine to buy (often quantity 0, so it stays out of the cellar views)
     wishlist = Column(Boolean, default=False)
     target_price = Column(Float, nullable=True)            # buy at or below this price
+    last_drunk = Column(String, default="")                # YYYY-MM-DD, set when the stock goes down
     saved_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
     created_by = Column(String, default="")
@@ -362,6 +364,7 @@ def _migrate_library_columns():
         ("tasting",             "TEXT DEFAULT ''"),
         ("wishlist",            "INTEGER DEFAULT 0"),
         ("target_price",        "REAL"),
+        ("last_drunk",          "TEXT DEFAULT ''"),
     ]
     with engine.connect() as conn:
         existing = {row[1] for row in conn.execute(text("PRAGMA table_info(wine_library)"))}
@@ -797,6 +800,7 @@ class WineUpdate(BaseModel):
     tasting: Optional[str] = None
     wishlist: Optional[bool] = None
     target_price: Optional[float] = Field(None, ge=0)
+    last_drunk: Optional[IsoDate] = None
     by_glass: Optional[bool] = None
     price_per_glass: Optional[float] = None
     location: Optional[str] = None
@@ -843,6 +847,7 @@ class WineResponse(BaseModel):
     tasting: str = ""
     wishlist: bool = False
     target_price: Optional[float] = None
+    last_drunk: str = ""
     by_glass: bool
     price_per_glass: Optional[float]
     location: str
@@ -1008,6 +1013,15 @@ class CustomFieldResponse(BaseModel):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
+
+def _apply_wine_update(wine: WineLibrary, values: dict) -> None:
+    """Set the fields; when the stock goes down and no date was given, last_drunk becomes today."""
+    old_qty = wine.quantity or 0
+    for field, value in values.items():
+        setattr(wine, field, value)
+    if "last_drunk" not in values and (wine.quantity or 0) < old_qty:
+        wine.last_drunk = datetime.utcnow().strftime("%Y-%m-%d")
 
 
 def _wine_to_dict(wine: WineLibrary, custom_values: Optional[dict] = None) -> dict:
@@ -1318,9 +1332,11 @@ def delete_custom_field(field_id: int, db: Session = Depends(get_db), _=Depends(
 
 @app.get("/wines", response_model=List[WineResponse])
 def get_wines(favorite: Optional[bool] = Query(None), include_wishlist: bool = Query(False),
-              db: Session = Depends(get_db), _=Depends(require_login_or_kiosk)):
+              include_past: bool = Query(False),
+              db: Session = Depends(get_db), auth=Depends(require_login_or_kiosk)):
     settings = db.get(AppSettings, 1)
-    show_zero = settings and settings.show_zero_quantity_in_dashboard
+    # include_past (main page, logged in only) adds the wines with no bottle left: the "Past" view
+    show_zero = (settings and settings.show_zero_quantity_in_dashboard) or (include_past and auth is not None)
     query = db.query(WineLibrary)
     if not show_zero:
         # include_wishlist (main page only) adds wished bottles that are not in stock
@@ -1414,8 +1430,7 @@ def batch_update_wines(data: WineBatchUpdate, db: Session = Depends(get_db), _=D
         raise HTTPException(status_code=400, detail="Keine Felder zum Aktualisieren")
     wines = db.query(WineLibrary).filter(WineLibrary.id.in_(data.ids)).all()
     for wine in wines:
-        for field, value in updates.items():
-            setattr(wine, field, value)
+        _apply_wine_update(wine, updates)
         wine.updated_at = datetime.utcnow()
     db.commit()
     notify_clients()
@@ -1427,8 +1442,7 @@ def update_wine(wine_id: int, wine_update: WineUpdate, db: Session = Depends(get
     wine = db.get(WineLibrary, wine_id)
     if not wine:
         raise HTTPException(status_code=404, detail="Wein nicht gefunden")
-    for field, value in wine_update.model_dump(exclude_unset=True, exclude={'custom_values'}).items():
-        setattr(wine, field, value)
+    _apply_wine_update(wine, wine_update.model_dump(exclude_unset=True, exclude={'custom_values'}))
     actor = db.get(User, int(payload["sub"]))
     wine.updated_at = datetime.utcnow()
     wine.updated_by = actor.username if actor else ""
@@ -1486,8 +1500,7 @@ def update_library_entry(entry_id: int, data: WineUpdate, db: Session = Depends(
     entry = db.get(WineLibrary, entry_id)
     if not entry:
         raise HTTPException(status_code=404, detail="Eintrag nicht gefunden")
-    for field, value in data.model_dump(exclude_unset=True, exclude={'custom_values'}).items():
-        setattr(entry, field, value)
+    _apply_wine_update(entry, data.model_dump(exclude_unset=True, exclude={'custom_values'}))
     entry.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(entry)
@@ -1710,7 +1723,7 @@ _EXPORT_FIELDS = [
     'url', 'profile_fruit', 'profile_personality', 'sweetness', 'favorite',
     'elabel_url', 'ingredients', 'sulphites', 'energy_kcal_100ml', 'sugar_g_100ml',
     'carbs_g_100ml', 'bottled_by', 'volume_ml',
-    'keep_until_years', 'serving_temp', 'purchase_date', 'tasting', 'wishlist', 'target_price',
+    'keep_until_years', 'serving_temp', 'purchase_date', 'tasting', 'wishlist', 'target_price', 'last_drunk',
 ]
 
 
@@ -1788,6 +1801,7 @@ async def import_wines(file: UploadFile = File(...), db: Session = Depends(get_d
             favorite=str(row.get('favorite', '')).strip().lower() in ('1', 'true', 'yes'),
             wishlist=wished,
             target_price=_float(row.get('target_price')),
+            last_drunk=row.get('last_drunk') if re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(row.get('last_drunk') or '')) else '',
         )
 
     fname = (file.filename or '').lower()

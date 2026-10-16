@@ -143,11 +143,12 @@
           <p class="description">{wine.description}</p>
         {/if}
 
-        {#if wine.keep_until_years || wine.serving_temp || wine.purchase_date || wine.tasting}
+        {#if wine.keep_until_years || wine.serving_temp || wine.purchase_date || wine.last_drunk || wine.tasting}
           <div class="elabel">
             {#if wine.keep_until_years && wine.vintage}<p class="elabel-line">{$t('detail_keep_until')}: {wine.vintage + wine.keep_until_years}</p>{/if}
             {#if wine.serving_temp}<p class="elabel-line">{$t('detail_serving_temp')}: {wine.serving_temp} °C</p>{/if}
             {#if wine.purchase_date}<p class="elabel-line">{$t('detail_purchase_date')}: {wine.purchase_date}</p>{/if}
+            {#if wine.last_drunk}<p class="elabel-line">{$t('detail_last_drunk')}: {wine.last_drunk}</p>{/if}
             {#if wine.tasting}<p class="elabel-line" style="white-space: pre-line">{wine.tasting}</p>{/if}
           </div>
         {/if}

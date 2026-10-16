@@ -481,6 +481,10 @@
   "changelog_in_progress": "In Arbeit",
 
   "filter_wishlist": "Wunschliste",
+  "filter_past": "Vergangene",
+  "past_empty_title": "Noch keine vergangenen Weine",
+  "past_empty_sub": "Weine ohne Flasche mehr erscheinen hier, mit dem Datum der zuletzt getrunkenen Flasche.",
+  "detail_last_drunk": "Zuletzt getrunken",
   "wish_bought": "Gekauft",
   "wish_in_stock": "{n} auf Lager",
   "wish_target_title": "Zu diesem Preis oder günstiger kaufen",

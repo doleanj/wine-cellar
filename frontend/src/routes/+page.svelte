@@ -107,12 +107,16 @@
   let filterType = 'all';
   let filterFav = false;
   let filterWish = false;
+  let filterPast = false;    // "Past" view: wines with no bottle left, newest last-drunk first
   let wishlistNew = false;   // add form opened from the Wishlist view
 
   // The main page also loads wished bottles that are not in stock; they only show in the Wishlist view.
-  const getWines = () => fetchWines({ includeWishlist: true });
+  const getWines = () => fetchWines({ includeWishlist: true, includePast: true });
   const wishOnly = w => w.wishlist && (w.quantity || 0) <= 0;
-  $: cellarWines = wines.filter(w => !wishOnly(w));
+  const pastOnly = w => !w.wishlist && (w.quantity || 0) <= 0;
+  // With the "show zero quantity" setting on, empty wines stay in the main list as before.
+  $: inCellar = w => !wishOnly(w) && ($branding.showZeroQuantityInDashboard || !pastOnly(w));
+  $: cellarWines = wines.filter(inCellar);
   let searchQuery = '';
   let sortBy = 'date';
   let viewMode = (typeof localStorage !== 'undefined' && localStorage.getItem('kellerlog_view')) || 'poster';
@@ -131,7 +135,7 @@
   $: filteredWines = wines
     .filter(w => filterType === 'all' || w.type === filterType)
     .filter(w => !filterFav || w.favorite)
-    .filter(w => (filterWish ? w.wishlist : !wishOnly(w)))
+    .filter(w => (filterPast ? pastOnly(w) : filterWish ? w.wishlist : inCellar(w)))
     .filter(w => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
@@ -144,6 +148,7 @@
       );
     })
     .sort((a, b) => {
+      if (filterPast && sortBy === 'date') return (b.last_drunk || '').localeCompare(a.last_drunk || '');
       if (sortBy === 'name') return a.name.localeCompare(b.name);
       if (sortBy === 'vintage') return (b.vintage || 0) - (a.vintage || 0);
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
@@ -345,7 +350,7 @@ function handleLibraryView(e) {
 
   function handleQuantityChange(e) {
     const { id, quantity } = e.detail;
-    wines = wines.map(w => w.id === id ? { ...w, quantity } : w);
+    wines = wines.map(w => w.id === id ? { ...w, quantity, last_drunk: quantity < (w.quantity || 0) ? new Date().toISOString().slice(0, 10) : w.last_drunk } : w);
     clearTimeout(qtyTimers[id]);
     qtyTimers[id] = setTimeout(async () => {
       try {
@@ -649,11 +654,17 @@ function handleLibraryView(e) {
           </svg>
           {$t('filter_favorites')}
         </button>
-        <button class="tab fav-tab" class:active={filterWish} aria-pressed={filterWish} on:click={() => filterWish = !filterWish}>
+        <button class="tab fav-tab" class:active={filterWish} aria-pressed={filterWish} on:click={() => { filterWish = !filterWish; filterPast = false; }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/>
           </svg>
           {$t('filter_wishlist')}
+        </button>
+        <button class="tab fav-tab" class:active={filterPast} aria-pressed={filterPast} on:click={() => { filterPast = !filterPast; filterWish = false; }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+          </svg>
+          {$t('filter_past')}
         </button>
       </div>
 
@@ -722,7 +733,10 @@ function handleLibraryView(e) {
     {:else if filteredWines.length === 0}
       <div class="empty">
         <div class="empty-icon">🍷</div>
-        {#if filterWish && !searchQuery.trim() && filterType === 'all' && !filterFav}
+        {#if filterPast && !searchQuery.trim() && filterType === 'all' && !filterFav}
+          <h2>{$t('past_empty_title')}</h2>
+          <p>{$t('past_empty_sub')}</p>
+        {:else if filterWish && !searchQuery.trim() && filterType === 'all' && !filterFav}
           <h2>{$t('wish_empty_title')}</h2>
           <p>{$t('wish_empty_sub')}</p>
         {:else if wines.length === 0}

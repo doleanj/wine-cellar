@@ -82,9 +82,11 @@ export async function deleteUser(id) {
   if (!r.ok) throw new Error((await r.json()).detail || tr('err_generic'));
 }
 
-// includeWishlist also returns wished wines that are not in stock (main page only).
-export async function getWines({ includeWishlist = false } = {}) {
-  const r = await fetch(`${BASE}/wines${includeWishlist ? '?include_wishlist=true' : ''}`, { headers: authHeaders() });
+// includeWishlist also returns wished wines that are not in stock, includePast the wines with no bottle left
+// (main page only; includePast needs a login).
+export async function getWines({ includeWishlist = false, includePast = false } = {}) {
+  const qs = [includeWishlist && 'include_wishlist=true', includePast && 'include_past=true'].filter(Boolean).join('&');
+  const r = await fetch(`${BASE}/wines${qs ? '?' + qs : ''}`, { headers: authHeaders() });
   if (!r.ok) throw new Error(tr('err_load'));
   return r.json();
 }

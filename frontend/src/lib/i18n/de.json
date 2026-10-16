@@ -429,6 +429,7 @@
 
   "action_fill_from_link": "Aus Link ausfüllen",
   "modal_field_purchase_date": "Kaufdatum",
+  "modal_field_last_drunk": "Zuletzt getrunken",
   "modal_field_keep_until": "Lagerfähig (Jahre)",
   "modal_field_serving_temp": "Trinktemperatur (°C)",
   "modal_field_tasting": "Verkostungsnotizen",

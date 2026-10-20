@@ -87,7 +87,10 @@
                     {#if r.wine.favorite}<span class="drink">♥</span>{/if}
                   </span>
                 </span>
-                <span class="qty">{r.wine.quantity}×</span>
+                <span class="side">
+                  <span class="qty">{r.wine.quantity}×</span>
+                  {#if r.wine.price}<span class="price">{r.wine.price.toFixed(2)} €</span>{/if}
+                </span>
               </button></li>
             {/each}
           </ul>
@@ -107,7 +110,10 @@
                     {#if r.status}<span class="drink drink-{r.status}">{$t('drink_' + r.status)}</span>{/if}
                   </span>
                 </span>
-                <span class="qty">{r.wine.quantity}×</span>
+                <span class="side">
+                  <span class="qty">{r.wine.quantity}×</span>
+                  {#if r.wine.price}<span class="price">{r.wine.price.toFixed(2)} €</span>{/if}
+                </span>
               </button></li>
             {/each}
           </ul>
@@ -156,5 +162,7 @@
   .drink-young { background: #deeaf7; color: #25588c; }
   .drink-late { background: #fbe9cf; color: #8a5a10; }
   .drink-past { background: #f6d9d6; color: #8c2a20; }
+  .side { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
   .qty { color: var(--primary); font-weight: 700; font-size: 13px; }
+  .price { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
 </style>

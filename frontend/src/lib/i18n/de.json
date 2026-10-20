@@ -543,5 +543,8 @@
   "open_chip_past": "Über den Zenit",
   "open_skip": "Überspringen",
   "open_save": "Speichern",
-  "open_saved_as": "Wird gespeichert als:"
+  "open_saved_as": "Wird gespeichert als:",
+  "filter_unrated": "Zu bewerten",
+  "unrated_empty_title": "Alles Getrunkene ist bewertet",
+  "unrated_empty_sub": "Getrunkene Weine ohne Bewertung erscheinen hier. Nutze Öffnen und dann Bewerten, oder setze die Bewertung in den Details."
 }

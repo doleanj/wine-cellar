@@ -4,6 +4,14 @@
 // 'planned' or 'in-progress' to track something that spans several PRs; drop it once shipped.
 export const CHANGELOG = [
   {
+    version: '2026-10-20.3',
+    items: [
+      'Past filter: shows every wine you have ever drunk, also when you bought it again or put it back on the wishlist; Past and Wishlist can now be combined',
+      'New "To rate" filter: drunk wines that have no rating yet',
+      'Phone: the header no longer hides the first row of filters',
+    ],
+  },
+  {
     version: '2026-10-20.2',
     items: [
       'Rate sheet after opening a bottle: the quick tags (Would rebuy / Too young / Past it) are now a single choice that highlights when selected, kept apart from the note, with a preview of the line saved in the tasting notes',

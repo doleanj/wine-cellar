@@ -109,13 +109,15 @@
   let filterType = 'all';
   let filterFav = false;
   let filterWish = false;
-  let filterPast = false;    // "Past" view: wines with no bottle left, newest last-drunk first
+  let filterPast = false;    // "Past" view: every wine ever drunk, newest last-drunk first (also when restocked or wished again)
+  let filterUnrated = false; // "To rate": drunk wines with no rating yet
   let wishlistNew = false;   // add form opened from the Wishlist view
 
   // The main page also loads wished bottles that are not in stock; they only show in the Wishlist view.
   const getWines = () => fetchWines({ includeWishlist: true, includePast: true });
   const wishOnly = w => w.wishlist && (w.quantity || 0) <= 0;
   const pastOnly = w => !w.wishlist && (w.quantity || 0) <= 0;
+  const isPast = w => !!w.last_drunk || pastOnly(w);
   // With the "show zero quantity" setting on, empty wines stay in the main list as before.
   $: inCellar = w => !wishOnly(w) && ($branding.showZeroQuantityInDashboard || !pastOnly(w));
   $: cellarWines = wines.filter(inCellar);
@@ -137,7 +139,10 @@
   $: filteredWines = wines
     .filter(w => filterType === 'all' || w.type === filterType)
     .filter(w => !filterFav || w.favorite)
-    .filter(w => (filterPast ? pastOnly(w) : filterWish ? w.wishlist : inCellar(w)))
+    .filter(w => {
+      if (!filterPast && !filterWish && !filterUnrated) return inCellar(w);
+      return (!filterPast || isPast(w)) && (!filterWish || w.wishlist) && (!filterUnrated || (isPast(w) && !w.rating));
+    })
     .filter(w => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
@@ -150,7 +155,7 @@
       );
     })
     .sort((a, b) => {
-      if (filterPast && sortBy === 'date') return (b.last_drunk || '').localeCompare(a.last_drunk || '');
+      if ((filterPast || filterUnrated) && sortBy === 'date') return (b.last_drunk || '').localeCompare(a.last_drunk || '');
       if (sortBy === 'name') return a.name.localeCompare(b.name);
       if (sortBy === 'vintage') return (b.vintage || 0) - (a.vintage || 0);
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
@@ -659,17 +664,23 @@ function handleLibraryView(e) {
           </svg>
           {$t('filter_favorites')}
         </button>
-        <button class="tab fav-tab" class:active={filterWish} aria-pressed={filterWish} on:click={() => { filterWish = !filterWish; filterPast = false; }}>
+        <button class="tab fav-tab" class:active={filterWish} aria-pressed={filterWish} on:click={() => filterWish = !filterWish}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/>
           </svg>
           {$t('filter_wishlist')}
         </button>
-        <button class="tab fav-tab" class:active={filterPast} aria-pressed={filterPast} on:click={() => { filterPast = !filterPast; filterWish = false; }}>
+        <button class="tab fav-tab" class:active={filterPast} aria-pressed={filterPast} on:click={() => filterPast = !filterPast}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
           </svg>
           {$t('filter_past')}
+        </button>
+        <button class="tab fav-tab" class:active={filterUnrated} aria-pressed={filterUnrated} on:click={() => filterUnrated = !filterUnrated}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          {$t('filter_unrated')}
         </button>
       </div>
 
@@ -738,10 +749,13 @@ function handleLibraryView(e) {
     {:else if filteredWines.length === 0}
       <div class="empty">
         <div class="empty-icon">🍷</div>
-        {#if filterPast && !searchQuery.trim() && filterType === 'all' && !filterFav}
+        {#if filterUnrated && !filterPast && !filterWish && !searchQuery.trim() && filterType === 'all' && !filterFav}
+          <h2>{$t('unrated_empty_title')}</h2>
+          <p>{$t('unrated_empty_sub')}</p>
+        {:else if filterPast && !filterWish && !searchQuery.trim() && filterType === 'all' && !filterFav}
           <h2>{$t('past_empty_title')}</h2>
           <p>{$t('past_empty_sub')}</p>
-        {:else if filterWish && !searchQuery.trim() && filterType === 'all' && !filterFav}
+        {:else if filterWish && !filterPast && !searchQuery.trim() && filterType === 'all' && !filterFav}
           <h2>{$t('wish_empty_title')}</h2>
           <p>{$t('wish_empty_sub')}</p>
         {:else if wines.length === 0}
@@ -1578,6 +1592,7 @@ function handleLibraryView(e) {
     .stats-bar { display: none; }
     .control-right { width: 100%; flex-wrap: wrap; }
     .search-wrap { width: 100%; }
+    .main { padding-top: 112px; }
     .control-search { flex: 1; width: auto; }
   }
 </style>

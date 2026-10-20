@@ -543,5 +543,8 @@
   "open_chip_past": "Past it",
   "open_skip": "Skip",
   "open_save": "Save",
-  "open_saved_as": "Saved as:"
+  "open_saved_as": "Saved as:",
+  "filter_unrated": "To rate",
+  "unrated_empty_title": "Everything drunk is rated",
+  "unrated_empty_sub": "Wines you have drunk without a rating show up here. Use Open, then Rate it, or set the rating in the wine details."
 }

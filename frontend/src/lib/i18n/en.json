@@ -542,5 +542,6 @@
   "open_chip_young": "Too young",
   "open_chip_past": "Past it",
   "open_skip": "Skip",
-  "open_save": "Save"
+  "open_save": "Save",
+  "open_saved_as": "Saved as:"
 }

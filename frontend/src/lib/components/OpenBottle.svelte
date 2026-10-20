@@ -16,6 +16,7 @@
   let error = '';
   let rating = wine.rating || 0;
   let note = '';
+  let chip = '';
   let timer;
 
   async function save(values) {
@@ -48,18 +49,20 @@
     step = 'rate';
   }
 
-  function addChip(key) {
-    const text = $t(key);
-    note = note ? `${note}, ${text}` : text;
+  function pickChip(key) {
+    chip = chip === key ? '' : key;
   }
+
+  // One dated line: the chosen tag, then the free note.
+  $: tastingLine = (() => {
+    const text = [chip && $t(chip), note.trim()].filter(Boolean).join(': ');
+    return text ? `${new Date().toISOString().slice(0, 10)}: ${text}` : '';
+  })();
 
   async function saveRating() {
     const values = {};
     if (rating && rating !== wine.rating) values.rating = rating;
-    if (note.trim()) {
-      const line = `${new Date().toISOString().slice(0, 10)}: ${note.trim()}`;
-      values.tasting = current.tasting ? `${current.tasting}\n${line}` : line;
-    }
+    if (tastingLine) values.tasting = current.tasting ? `${current.tasting}\n${tastingLine}` : tastingLine;
     if (!Object.keys(values).length || await save(values)) dispatch('close');
   }
 
@@ -98,9 +101,10 @@
         {/each}
       </div>
       <div class="chips">
-        {#each CHIPS as c}<button type="button" class="chip" on:click={() => addChip(c)}>{$t(c)}</button>{/each}
+        {#each CHIPS as c}<button type="button" class="chip" class:on={chip === c} aria-pressed={chip === c} on:click={() => pickChip(c)}>{$t(c)}</button>{/each}
       </div>
       <input class="note" type="text" bind:value={note} placeholder={$t('open_note')} />
+      {#if tastingLine}<p class="preview">{$t('open_saved_as')} {tastingLine}</p>{/if}
       {#if error}<p class="err">{error}</p>{/if}
       <div class="actions">
         <button type="button" class="btn ghost" on:click={() => dispatch('close')}>{$t('open_skip')}</button>
@@ -128,6 +132,8 @@
   .star.on { color: #d4a017; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--bg); color: var(--text-muted); font-size: 13px; cursor: pointer; }
+  .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+  .preview { margin: 0; font-size: 12px; color: var(--text-muted); }
   .note { width: 100%; box-sizing: border-box; min-height: 42px; padding: 0 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-size: 15px; }
 
   .snack { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 400;

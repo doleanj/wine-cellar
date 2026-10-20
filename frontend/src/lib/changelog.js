@@ -4,6 +4,12 @@
 // 'planned' or 'in-progress' to track something that spans several PRs; drop it once shipped.
 export const CHANGELOG = [
   {
+    version: '2026-10-20.2',
+    items: [
+      'Rate sheet after opening a bottle: the quick tags (Would rebuy / Too young / Past it) are now a single choice that highlights when selected, kept apart from the note, with a preview of the line saved in the tasting notes',
+    ],
+  },
+  {
     version: '2026-10-20',
     items: [
       'Pairing menu: each wine line now shows its bottle price under the quantity',

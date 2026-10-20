@@ -76,7 +76,7 @@
           <h3>{$t('pairing_best')} <span class="count">{best.length}</span></h3>
           <ul class="results">
             {#each best as r (r.wine.id)}
-              <li><button type="button" class="row" on:click={() => dispatch('selectWine', r.wine)}>
+              <li class="item"><button type="button" class="row" on:click={() => dispatch('selectWine', r.wine)}>
                 {#if r.wine.image_url}<img src={r.wine.image_url} alt="" loading="lazy" />{:else}<span class="ph"></span>{/if}
                 <span class="main">
                   <span class="name">{r.wine.name}{#if r.wine.vintage} <span class="vint">{r.wine.vintage}</span>{/if}</span>
@@ -91,7 +91,7 @@
                   <span class="qty">{r.wine.quantity}×</span>
                   {#if r.wine.price}<span class="price">{r.wine.price.toFixed(2)} €</span>{/if}
                 </span>
-              </button></li>
+              </button><button type="button" class="open-btn" on:click={() => dispatch('openBottle', r.wine)} aria-label="{$t('open_btn')}: {r.wine.name}">🍷 {$t('open_btn')}</button></li>
             {/each}
           </ul>
         {/if}
@@ -100,7 +100,7 @@
           <p class="hint">{$t('pairing_suggested_hint')}</p>
           <ul class="results">
             {#each suggested as r (r.wine.id)}
-              <li><button type="button" class="row" on:click={() => dispatch('selectWine', r.wine)}>
+              <li class="item"><button type="button" class="row" on:click={() => dispatch('selectWine', r.wine)}>
                 {#if r.wine.image_url}<img src={r.wine.image_url} alt="" loading="lazy" />{:else}<span class="ph"></span>{/if}
                 <span class="main">
                   <span class="name">{r.wine.name}{#if r.wine.vintage} <span class="vint">{r.wine.vintage}</span>{/if}</span>
@@ -114,7 +114,7 @@
                   <span class="qty">{r.wine.quantity}×</span>
                   {#if r.wine.price}<span class="price">{r.wine.price.toFixed(2)} €</span>{/if}
                 </span>
-              </button></li>
+              </button><button type="button" class="open-btn" on:click={() => dispatch('openBottle', r.wine)} aria-label="{$t('open_btn')}: {r.wine.name}">🍷 {$t('open_btn')}</button></li>
             {/each}
           </ul>
         {/if}
@@ -147,7 +147,10 @@
 
   .results { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
   .results li + li { border-top: 1px solid var(--border); }
-  .row { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 4px; background: none; border: none; text-align: left; color: var(--text); cursor: pointer; }
+  .item { display: flex; align-items: center; gap: 4px; }
+  .open-btn { flex-shrink: 0; min-height: 40px; padding: 0 12px; border: 1.5px solid var(--primary); border-radius: 999px; background: var(--bg); color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .open-btn:hover { background: var(--primary); color: #fff; }
+  .row { flex: 1; min-width: 0; width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 4px; background: none; border: none; text-align: left; color: var(--text); cursor: pointer; }
   .row:hover { background: var(--surface-2); }
   .row img, .ph { width: 34px; height: 52px; object-fit: contain; flex-shrink: 0; border-radius: 4px; background: var(--surface-2); }
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }

@@ -542,5 +542,6 @@
   "open_chip_young": "Zu jung",
   "open_chip_past": "Über den Zenit",
   "open_skip": "Überspringen",
-  "open_save": "Speichern"
+  "open_save": "Speichern",
+  "open_saved_as": "Wird gespeichert als:"
 }

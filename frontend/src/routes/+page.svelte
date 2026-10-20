@@ -7,6 +7,7 @@
   import WineMap from '$lib/components/WineMap.svelte';
   import RegionsPanel from '$lib/components/RegionsPanel.svelte';
   import PairingPanel from '$lib/components/PairingPanel.svelte';
+  import OpenBottle from '$lib/components/OpenBottle.svelte';
   import LibraryManager from '$lib/components/LibraryManager.svelte';
   import ExportPanel from '$lib/components/ExportPanel.svelte';
   import BrandingPanel from '$lib/components/BrandingPanel.svelte';
@@ -40,6 +41,7 @@
   let showMap = false;
   let showRegions = false;
   let showPairing = false;
+  let openingWine = null;
   let showLibrary = false;
   let showChangelog = false;
   let showLinks = false;
@@ -833,7 +835,7 @@ function handleLibraryView(e) {
 
   <!-- Pairing finder -->
   {#if showPairing}
-    <PairingPanel wines={cellarWines} {drinkRules} on:close={() => showPairing = false} on:selectWine={(e) => { selectedWine = e.detail; }} />
+    <PairingPanel wines={cellarWines} {drinkRules} on:close={() => showPairing = false} on:selectWine={(e) => { selectedWine = e.detail; }} on:openBottle={(e) => openingWine = e.detail} />
   {/if}
 
   <!-- Regions -->
@@ -922,6 +924,13 @@ function handleLibraryView(e) {
   {/if}
 
   <!-- Toast -->
+  {#if openingWine}
+    {#key openingWine.id}
+      <OpenBottle wine={openingWine} on:close={() => openingWine = null}
+        on:updated={async (e) => { wines = wines.map(w => w.id === e.detail.id ? e.detail : w); stats = await getStats(); }} />
+    {/key}
+  {/if}
+
   {#if toast}
     <div class="toast">{toast}</div>
   {/if}

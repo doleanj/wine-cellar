@@ -527,5 +527,20 @@
   "links_add_cellar": "{n} in den Keller",
   "links_add_wishlist": "{n} auf die Wunschliste",
   "links_toast": "{n} Wein(e) hinzugefügt",
-  "links_toast_failed": "{n} fehlgeschlagen"
+  "links_toast_failed": "{n} fehlgeschlagen",
+  "open_btn": "Öffnen",
+  "open_title": "Diese Flasche öffnen?",
+  "open_stock": "{from} → {to} übrig",
+  "open_confirm": "Bestätigen",
+  "open_done": "Zum Wohl! Noch {n} übrig",
+  "open_done_last": "Zum Wohl! Das war die letzte Flasche, jetzt unter Vergangene",
+  "open_undo": "Rückgängig",
+  "open_rate": "Bewerten",
+  "open_rate_title": "Wie war er?",
+  "open_note": "Kurze Notiz (optional)",
+  "open_chip_rebuy": "Würde ich nachkaufen",
+  "open_chip_young": "Zu jung",
+  "open_chip_past": "Über den Zenit",
+  "open_skip": "Überspringen",
+  "open_save": "Speichern"
 }

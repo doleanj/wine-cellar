@@ -7,6 +7,7 @@ export const CHANGELOG = [
     version: '2026-10-20',
     items: [
       'Pairing menu: each wine line now shows its bottle price under the quantity',
+      'Pairing menu: new "Open" button on each wine. Confirm in a bottom sheet to take one bottle out of stock (sets "Last drunk"), then Undo within 10 s or "Rate it" with stars, quick tags and a one-line note',
     ],
   },
   {

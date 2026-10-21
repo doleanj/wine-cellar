@@ -18,5 +18,5 @@
 - Nothing.
 
 ## Open decisions
-- Off-NAS backup: parked for the cross-project backup review (Toodledo 658941367 has the current script's details).
+- Off-NAS backup: parked for the NAS backup plan (nas-infra `docs/design-backups.md`); the Mac-pull script's details moved from Toodledo [658941367](https://www.toodledo.com/tasks/index.php#task_658941367) to `docs/toodledo-notes-archive-20261021.md`.
 - Later: Web-watcher monitors for site-wide promos (no code); optional one-way "add to Groly list" once Groly has an API.
